@@ -8,6 +8,7 @@
     "up:build": "docker-compose up --build",
     "down": "docker-compose down",
     "dev": "nodemon --config nodemon.json --inspect=0.0.0.0 src/index.ts",
+    "example": "nodemon --config nodemon.json --inspect=0.0.0.0 examples/index.ts",
     "tsc": "tsc",
     "test": "jest",
     "prebuild": "rimraf build",
