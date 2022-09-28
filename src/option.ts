@@ -6,6 +6,8 @@ export enum OptionType {
   None,
 }
 
+const x = () => {};
+
 /**
  * Class representing an optional value. Every option is either `Some` and contains
  * a value, or `None` and contains no value.
