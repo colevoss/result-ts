@@ -15,7 +15,7 @@ export enum ResultType {
  *
  * @see {@link https://doc.rust-lang.org/std/result|Rust Result Docs}
  */
-export class Result<T, E> implements ResultOption<T, E> {
+export class Result<T, E> implements ResultOption<T> {
   public _type: ResultType;
   protected _ok: boolean;
 

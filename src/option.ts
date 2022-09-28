@@ -14,7 +14,7 @@ export enum OptionType {
  *
  * @see {@link https://doc.rust-lang.org/std/option/|Rust Option Docs}
  */
-export class Option<T> implements ResultOption<T, never> {
+export class Option<T> implements ResultOption<T> {
   public _type: OptionType;
   protected hasValue: boolean;
 

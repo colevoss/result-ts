@@ -11,12 +11,13 @@
   "repository": "https://github.com/colevoss/result-ts",
   "scripts": {
     "example": "ts-node examples/index.ts",
-    "tsc": "tsc",
-    "test": "jest",
-    "prebuild": "rimraf build",
     "build": "npm run tsc",
+    "lint": "eslint --ext .ts src/",
+    "prebuild": "rimraf build",
     "prettier": "prettier",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest",
+    "tsc": "tsc"
   },
   "author": "Cole Voss",
   "license": "MIT",
