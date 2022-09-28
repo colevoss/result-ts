@@ -1,41 +1,37 @@
 {
-  "name": "typescript-node-boilerplate",
+  "name": "result-ts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "repository": "https://github.com/colevoss/result-ts",
   "scripts": {
-    "up": "docker-compose up",
-    "up:build": "docker-compose up --build",
-    "down": "docker-compose down",
-    "dev": "nodemon --config nodemon.json --inspect=0.0.0.0 src/index.ts",
-    "example": "nodemon --config nodemon.json --inspect=0.0.0.0 examples/index.ts",
+    "example": "ts-node examples/index.ts",
     "tsc": "tsc",
     "test": "jest",
     "prebuild": "rimraf build",
     "build": "npm run tsc",
     "prettier": "prettier",
-    "prepare": "node ./scripts/prepare.js"
+    "prepare": "npm run build"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "author": "",
-  "license": "ISC",
+  "author": "Cole Voss",
+  "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^27.0.3",
-    "@types/node": "^17.0.8",
+    "@types/jest": "^29.0.3",
+    "@types/node": "^18.7.23",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
     "eslint": "^8.3.0",
-    "husky": "^7.0.4",
-    "jest": "^27.4.2",
-    "lint-staged": "^12.1.2",
-    "nodemon": "^2.0.15",
+    "jest": "^29.0.3",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
-    "ts-jest": "^27.0.7",
+    "ts-jest": "^29.0.2",
     "ts-node": "^10.4.0",
-    "typescript": "^4.2.3"
+    "typescript": "^4.8.4"
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --cache --fix",

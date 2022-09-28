@@ -4,6 +4,7 @@
 # Node/Build
 node_modules
 build
+lib
 coverage
 
 # Env
@@ -20,3 +21,4 @@ app-*-deployment.yaml
 .dev/*
 
 .eslintcache
+.vscode

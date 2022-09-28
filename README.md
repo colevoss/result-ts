@@ -1,63 +1,71 @@
-# Typescript Node Boilerplate
+# Result TS
 
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+This package provides [`Result<T, E>`](https://doc.rust-lang.org/std/result/) and [`Option<T>`](https://doc.rust-lang.org/std/option/) classes heavily inspired by
+Rust's standard library equivalents.
 
-## What
+## Why
 
-This is a template repo that will get you writing a TypeScript Node application
-in not time. Click [here](https://github.com/colevoss/typescript-node-boilerplate/generate) to create a new repo with this template.
+After writing some Rust code, I realized how nice the `Result` and `Option` types
+are to use. I wanted to have the same powerful types in my TypeScript code.
+I have no idea if these types will actually be usable, but creating this package
+allowed me to learn Rust's types even better as well as improving my TypeScript skills.
 
-## How
+Rust has some very helpful language primitives like `match` and `?` that empower
+these types even further, and I've tried to capture some of the value of those
+language features in this library as well.
 
-Use this template by clicking [here](https://github.com/colevoss/typescript-node-boilerplate/generate)
-and cloning your new repository
+## `Result<T, E>`
 
-### Testing
+```ts
+import { Result } from 'result-ts';
 
-```bash
-npm test
+// Ok
+const result = Result.ok(1); // Creates an Ok<number> type
+assert.ok(result.isOk());
+
+// unwrap
+const unwrappedValue = result.unwrap();
+assert.equal(unwrappedValue, 1);
+
+// expect
+const expectedValue = result.expect('Should be 1');
+assert.equal(expectedValue, 1);
+
+// Err
+const errResult = Result.err('Big bad error'); // Creates an Err<string> value
+
+assert.ok(errResult.isErr()); // Passes
+assert.ok(errResult.isOk()); // Fails
+
+// unwrap
+errResult.unwrap(); // Throws error
+errResult.expect('Should be something'); // Throws descriptive error
 ```
 
-Testing has been set up using [jest](https://jestjs.io/) and [ts-jest](https://github.com/kulshekhar/ts-jest).
-Run tests with `npm test`. Coverage is turned on and thresholds set to 80%. Test files must be named
-`<name>.test.ts` and placed in the `test` in the root of the project.
+## `Option<T>`
 
-### Building
+```ts
+import { Opiton } from 'result-ts';
 
-```bash
-npm run build
+const some = Option.some(1);
+assert.ok(some.isSome());
+
+// unwrap
+const unwrapped = some.unwrap();
+assert.equal(unwrapped, 1);
+
+// expect
+const expected = some.expect('Should be some 1');
+assert.equal(expected, 1);
+
+const none = Option.none();
+assert.ok(none.isNone()); // Passes
+assert.ok(none.isSome()); // Fails
+
+none.unwrap(); // Throws
+none.expect('Should be some 1'); // Throws more descriptive error
 ```
-
-This will clean the `build` directory and recompile the TypeScript code into the `build` directory.
-
-### Git Hooks
-
-#### Pre-Commit
-
-##### Prettier
-
-Prettier is ran against all `.ts`, `.js`, `.md`, `.json`, and `.yaml` files with the `--write` flag, so files will be corrected and re-staged.
-
-##### Tests
-
-All tests are ran before the commit is initialized.
-
-#### Pre-Commit Message
-
-This project is set up with [commitizen](https://github.com/commitizen/cz-cli). To commit changes,
-stage your changes with `git add`. Then initialize the commit with `git commit` and you will be prompted
-with the commitizen Conventional Changelog commit message options. Complete the prompts given by commitizen,
-review your message in the default git commit message composer, and finally save. (Don't for get to push)
-
-### CI/CD
-
-#### Pull Requests
-
-A Github Action is ran on every pull request creation and push to an open PR that will build, test, and
-archive the test coverage as an artifact of the build.
 
 ## Todo
 
-- [ ] Explain VSCode Launch Tasks
-- [ ] Create master branch merge Github Action
-- [ ] Explore linting options
+- [ ] More Docs

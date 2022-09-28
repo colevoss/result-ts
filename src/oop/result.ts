@@ -1,18 +1,50 @@
 import { ResultOption } from './types';
+import { Option } from './option';
 
-abstract class IResult<T, E> implements ResultOption<T, E> {
-  protected ok: boolean;
+export enum ResultType {
+  Ok,
+  Err,
+}
+
+/**
+ * Class used for returning and propogating errors. Behaves as an enum with variants
+ * `Ok<T>` representing success and containing a value, and `Err<E>` representing
+ * an error and containing an error value.
+ *
+ * This type is inspired by Rust's `Result` type.
+ *
+ * @see {@link https://doc.rust-lang.org/std/result|Rust Result Docs}
+ */
+export class Result<T, E> implements ResultOption<T, E> {
+  public _type: ResultType;
+  protected _ok: boolean;
+
+  static Ok = ResultType.Ok;
+  static Err = ResultType.Err;
 
   constructor(ok: boolean) {
-    this.ok = ok;
+    this._ok = ok;
+    this._type = ok ? ResultType.Ok : ResultType.Err;
+  }
+
+  public get type(): ResultType {
+    return this._type;
   }
 
   public isOk(): this is Ok<T> {
-    return this.ok;
+    return this._ok;
+  }
+
+  public isOkAnd(cb: (v: T) => boolean): boolean {
+    if (this.isOk()) {
+      return cb(this.value);
+    } else if (this.isErr()) {
+      return false;
+    }
   }
 
   public isErr(): this is Err<T, E> {
-    return !this.ok;
+    return !this._ok;
   }
 
   public unwrap(): T {
@@ -35,7 +67,7 @@ abstract class IResult<T, E> implements ResultOption<T, E> {
     if (this.isOk()) {
       return ok(this.value);
     } else if (this.isErr()) {
-      err(this);
+      return err(this);
     }
   }
 
@@ -46,18 +78,110 @@ abstract class IResult<T, E> implements ResultOption<T, E> {
       throw new Error(reason);
     }
   }
+
+  public map<U>(cb: (value: T) => U): Result<U, E> {
+    if (this.isOk()) {
+      return Result.ok(cb(this.value));
+    } else if (this.isErr()) {
+      return Result.err(this.error);
+    }
+  }
+
+  public mapOr<U>(orValue: U, cb: (v: T) => U): U {
+    if (this.isOk()) {
+      return cb(this.value);
+    } else if (this.isErr()) {
+      return orValue;
+    }
+  }
+
+  public mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<T, E>) => U): U {
+    if (this.isOk()) {
+      return okCb(this.value);
+    } else if (this.isErr()) {
+      return errCb(this);
+    }
+  }
+
+  public ok(): Option<T> {
+    if (this.isOk()) {
+      return Option.some(this.value);
+    } else if (this.isErr()) {
+      return Option.none();
+    }
+  }
+
+  public err(): Option<E> {
+    if (this.isOk()) {
+      return Option.none();
+    } else if (this.isErr()) {
+      return Option.some(this.error);
+    }
+  }
+
+  public inspect(cb: (v: T) => void): this {
+    if (this.isOk()) {
+      cb(this.value);
+    }
+    return this;
+  }
+
+  // I don't think this is right.
+  // @see https://doc.rust-lang.org/std/result/enum.Result.html#method.and
+  /* public and<U>(res: Result<U, E>): Result<U, E> { */
+  /*   if (this.isOk()) { */
+  /*     return res; */
+  /*   } else if (this.isErr()) { */
+  /*     return Result.err(this.error); */
+  /*   } */
+  /* } */
+
+  public static ok<T>(value: T = null): Ok<T> {
+    return new Ok(value);
+  }
+
+  public static err<T, E>(err: E): Err<T, E>;
+  public static err<T, E>(err: E, value: T): Err<T, E>;
+  public static err<T, E>(err: E, value?: T): Err<T, E> {
+    return new Err(err, value);
+  }
+
+  public static wrap<T>(fn: (...args: unknown[]) => T) {
+    return (...args: unknown[]) => {
+      try {
+        const value = fn(...args);
+        return Result.ok(value);
+      } catch (e) {
+        return Result.err(e);
+      }
+    };
+  }
+
+  public static wrapAsync<T>(fn: (...args: unknown[]) => Promise<T>) {
+    return async (...args: unknown[]) => {
+      try {
+        const value = await fn(...args);
+        return Result.ok(value);
+      } catch (e) {
+        return Result.err(e);
+      }
+    };
+  }
 }
 
-export class Ok<T> extends IResult<T, undefined> {
+export type LazyResult<T> = Result<T, unknown>;
+export type PromiseRes<T, E> = Promise<Result<T, E>>;
+
+export class Ok<T> extends Result<T, undefined> {
   public value: T;
 
-  constructor(value: T) {
+  constructor(value: T = null) {
     super(true);
     this.value = value;
   }
 }
 
-export class Err<T, E> extends IResult<T, E> {
+export class Err<T, E> extends Result<T, E> {
   public error: E;
   public value?: T;
 
@@ -70,21 +194,12 @@ export class Err<T, E> extends IResult<T, E> {
   }
 }
 
-export function ok<T>(v: T): Ok<T> {
-  return new Ok(v);
+export function ok<T>(v: T = null): Ok<T> {
+  return Result.ok(v);
 }
 
 export function err<T, E>(err: E): Err<T, E>;
 export function err<T, E>(err: E, v: T): Err<T, E>;
 export function err<T, E>(err: E, v?: T): Err<T, E> {
-  return new Err(err, v);
+  return Result.err(err, v);
 }
-
-export type Result<T, E> = Ok<T> | Err<T, E>;
-
-/* const test = async (res: Result<string, string>) => { */
-/*   const x = await res.match( */
-/*     async (value) => value, */
-/*     (e) => console.log(e.error), */
-/*   ); */
-/* }; */

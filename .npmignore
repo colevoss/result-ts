@@ -1,0 +1,8 @@
+examples
+test
+.github
+.prettierignore
+.prettierrc
+.eslintignore
+.eslintrc.json
+jest.config.json
