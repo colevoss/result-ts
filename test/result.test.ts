@@ -1,5 +1,4 @@
-import { deserialize } from 'v8';
-import { Result, ok, err, Ok, Err } from '../../src/oop';
+import { Result, ok, err, Ok } from '../src';
 
 describe('Result.ok', () => {
   test('Returns Ok result', () => {
@@ -363,5 +362,56 @@ describe('Err', () => {
           .isErr(),
       ).toBe(true);
     });
+  });
+});
+
+describe('Result.wrap', () => {
+  const testFn = (pass: boolean) => {
+    if (!pass) {
+      throw new Error('error');
+    }
+
+    return 1;
+  };
+  test('Wrapped function returns Result (ok)', () => {
+    const wrapped = Result.wrap(testFn);
+    const result = wrapped(true);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe(1);
+  });
+
+  test('Wrapped function returns Result (err)', () => {
+    const wrapped = Result.wrap(testFn);
+    const result = wrapped(false);
+
+    expect(result.isErr()).toBe(true);
+    expect(() => result.unwrap()).toThrowError('error');
+  });
+});
+
+describe('Result.wrapAsync', () => {
+  const testFn = async (pass: boolean) => {
+    if (!pass) {
+      return Promise.reject('rejected');
+    }
+
+    return Promise.resolve(1);
+  };
+
+  test('Wrapped async function returns result (ok)', async () => {
+    const wrapped = Result.wrapAsync(testFn);
+    const result = await wrapped(true);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe(1);
+  });
+
+  test('Wrapped async function returns result (err)', async () => {
+    const wrapped = Result.wrapAsync(testFn);
+    const result = await wrapped(false);
+
+    expect(result.isErr()).toBe(true);
+    expect(() => result.unwrap()).toThrowError('rejected');
   });
 });
