@@ -1,21 +1,12 @@
+import { ResultOption } from './result';
 import { Result } from './result';
-import { ResultOption } from './types';
-import { ResultError } from './error';
 
 export enum OptionType {
   Some,
   None,
 }
 
-/**
- * Class representing an optional value. Every option is either `Some` and contains
- * a value, or `None` and contains no value.
- *
- * This type is inspired by Rust's `Option` type.
- *
- * @see {@link https://doc.rust-lang.org/std/option/|Rust Option Docs}
- */
-export class Option<T> implements ResultOption<T> {
+export abstract class Option<T> implements ResultOption<T> {
   public _type: OptionType;
   protected hasValue: boolean;
 
@@ -41,6 +32,15 @@ export class Option<T> implements ResultOption<T> {
   }
 
   /**
+   * Returns true if value is `None`
+   *
+   * @returns
+   */
+  public isNone(): this is None<T> {
+    return !this.hasValue;
+  }
+
+  /**
    * If type is `Some<T>` returns value returned by the given callback.
    * If type is `None`, returns false
    *
@@ -55,22 +55,7 @@ export class Option<T> implements ResultOption<T> {
    * @param cb Predicate function called when type is `Some<T>`.
    * @returns boolean
    */
-  public isSomeAnd(cb: (v: T) => boolean): boolean {
-    if (this.isSome()) {
-      return cb(this.value);
-    }
-
-    return false;
-  }
-
-  /**
-   * Returns true if value is `None`
-   *
-   * @returns
-   */
-  public isNone(): this is None<T> {
-    return !this.hasValue;
-  }
+  public abstract isSomeAnd(cb: (v: T) => boolean): boolean;
 
   /**
    * If value is `Some<T>` returns `T`. Throws error if value is `None`
@@ -78,13 +63,7 @@ export class Option<T> implements ResultOption<T> {
    * @returns T
    * @throws
    */
-  public unwrap(): T {
-    if (this.isSome()) {
-      return this.value;
-    } else if (this.isNone()) {
-      throw new ResultError('Option value is None');
-    }
-  }
+  public abstract unwrap(): T;
 
   /**
    * If value is `Some<T>` returns `T`.
@@ -104,77 +83,23 @@ export class Option<T> implements ResultOption<T> {
    * @param {T} orValue - Value returned if type is `None`
    * @returns
    */
-  public unwrapOr(orValue: T): T {
-    if (this.isSome()) {
-      return this.value;
-    } else if (this.isNone()) {
-      return orValue;
-    }
-  }
+  public abstract unwrapOr(orValue: T): T;
 
-  public match<A, B>(some: (value: T) => A, none: () => B): A | B {
-    if (this.isSome()) {
-      return some(this.value);
-    } else if (this.isNone()) {
-      return none();
-    }
-  }
+  public abstract match<A, B>(someCb: (value: T) => A, noneCb: () => B): A | B;
 
-  public expect(reason: string): T {
-    if (this.isSome()) {
-      return this.value;
-    } else if (this.isNone()) {
-      throw new ResultError(reason);
-    }
-  }
+  public abstract expect(reason: string): T;
 
-  public map<U>(cb: (value: T) => U): Option<U> {
-    if (this.isSome()) {
-      return some(cb(this.value));
-    } else if (this.isNone()) {
-      return Option.none();
-    }
-  }
+  public abstract map<U>(cb: (value: T) => U): Option<U>;
 
-  public mapOr<U>(orValue: U, cb: (value: T) => U): U {
-    if (this.isSome()) {
-      return cb(this.value);
-    } else if (this.isNone()) {
-      return orValue;
-    }
-  }
+  public abstract mapOr<U>(orValue: U, cb: (value: T) => U): U;
 
-  public mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U {
-    if (this.isSome()) {
-      return someCb(this.value);
-    } else if (this.isNone()) {
-      return noneCb();
-    }
-  }
+  public abstract mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U;
 
-  public okOr<E>(errValue: E): Result<T, E> {
-    if (this.isSome()) {
-      return Result.ok(this.value);
-    } else if (this.isNone()) {
-      return Result.err(errValue);
-    }
-  }
+  public abstract okOr<E>(errValue: E): Result<T, E>;
 
-  public okOrElse<E>(errCb: () => E): Result<T, E> {
-    if (this.isSome()) {
-      return Result.ok(this.value);
-    } else if (this.isNone()) {
-      return Result.err(errCb());
-    }
-  }
+  public abstract okOrElse<E>(errCb: () => E): Result<T, E>;
 
-  public inspect(cb: (v: T) => void): this {
-    if (this.isSome()) {
-      cb(this.value);
-    }
-
-    return this;
-  }
+  public abstract inspect(cb: (v: T) => void): this;
 
   public static some<T>(value: T): Some<T> {
     return new Some(value);
@@ -185,9 +110,6 @@ export class Option<T> implements ResultOption<T> {
   }
 }
 
-/**
- * A variance of the `Option` type containing a value `T`
- */
 export class Some<T> extends Option<T> {
   public value: T;
 
@@ -195,14 +117,103 @@ export class Some<T> extends Option<T> {
     super(true);
     this.value = value;
   }
+
+  public isSomeAnd(cb: (v: T) => boolean): boolean {
+    return cb(this.value);
+  }
+
+  public unwrap(): T {
+    return this.value;
+  }
+
+  public unwrapOr(_orValue: T): T {
+    return this.value;
+  }
+
+  public match<A, B>(someCb: (value: T) => A, _noneCb: () => B): A {
+    return someCb(this.value);
+  }
+
+  public expect(_reason: string): T {
+    return this.value;
+  }
+
+  public map<U>(cb: (value: T) => U): Option<U> {
+    return new Some(cb(this.value));
+  }
+
+  public mapOr<U>(_orValue: U, cb: (value: T) => U): U {
+    return cb(this.value);
+  }
+
+  public mapOrElse<U>(someCb: (v: T) => U, _noneCb: () => U): U {
+    return someCb(this.value);
+  }
+
+  public okOr<E>(_errValue: E): Result<T, E> {
+    return Result.ok(this.value);
+  }
+
+  public okOrElse<E>(_errCb: () => E): Result<T, E> {
+    return Result.ok(this.value);
+  }
+
+  public inspect(cb: (v: T) => void): this {
+    cb(this.value);
+
+    return this;
+  }
 }
 
-/**
- * A variance of the `Option` type that does not contain any value
- */
 export class None<T> extends Option<T> {
   constructor() {
     super(false);
+  }
+
+  public isSomeAnd(_cb: (v: T) => boolean): boolean {
+    return false;
+  }
+
+  public unwrap(): T {
+    // TODO: Use Better error
+    throw new Error('Option value is None');
+  }
+
+  public unwrapOr(orValue: T): T {
+    return orValue;
+  }
+
+  public match<A, B>(_someCb: (value: T) => A, noneCb: () => B): B {
+    return noneCb();
+  }
+
+  public expect(reason: string): T {
+    // TODO: Use beter errors
+    throw new Error(reason);
+  }
+
+  public map<U>(_cb: (value: T) => U): Option<U> {
+    return new None<U>();
+  }
+
+  public mapOr<U>(orValue: U, _cb: (value: T) => U): U {
+    return orValue;
+  }
+
+  public mapOrElse<U>(_someCb: (v: T) => U, noneCb: () => U): U {
+    return noneCb();
+  }
+
+  public okOr<E>(errValue: E): Result<T, E> {
+    return Result.err(errValue);
+  }
+
+  public okOrElse<E>(errCb: () => E): Result<T, E> {
+    return Result.err(errCb());
+  }
+
+  public inspect(_cb: (v: T) => void): this {
+    return this;
   }
 }
 

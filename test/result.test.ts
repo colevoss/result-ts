@@ -74,19 +74,20 @@ describe('Ok', () => {
     });
   });
 
-  // describe('isErrAnd', () => {
-  //   test('Does not call callback', () => {
-  //     expect.assertions(1);
-  //
-  //     const result = Result.ok(1);
-  //
-  //     const and = result.isErrAnd((e: undefined) => {
-  //       expect(true).toBe(true);
-  //     });
-  //
-  //     expect(and).toBe(false);
-  //   });
-  // });
+  describe('isErrAnd', () => {
+    test('Does not call callback', () => {
+      expect.assertions(1);
+
+      const result = Result.ok(1);
+
+      const and = result.isErrAnd((e: undefined) => {
+        expect(true).toBe(true);
+        return true;
+      });
+
+      expect(and).toBe(false);
+    });
+  });
 
   describe('unwrap', () => {
     test('Returns value', () => {
@@ -98,7 +99,7 @@ describe('Ok', () => {
 
   describe('unwrapOr', () => {
     test('Returns value', () => {
-      const result = ok('ok value');
+      const result = Result.ok('ok value');
 
       expect(result.unwrapOr('not value')).toBe('ok value');
     });
@@ -116,7 +117,7 @@ describe('Ok', () => {
     test('Calls ok callback', () => {
       expect.assertions(2);
 
-      const result = ok('ok value');
+      const result = Result.ok('ok value');
 
       const matchResult = result.match(
         (v) => {
@@ -198,6 +199,20 @@ describe('Ok', () => {
           })
           .unwrap(),
       ).toBe('ok');
+    });
+  });
+
+  describe('inspectErr', () => {
+    test('Does not call callback', () => {
+      expect.assertions(1);
+
+      const result = Result.ok('ok');
+
+      result.inspectErr(() => {
+        expect(true).toBe(true);
+      });
+
+      expect(1).toBe(1);
     });
   });
 
