@@ -74,6 +74,20 @@ describe('Ok', () => {
     });
   });
 
+  // describe('isErrAnd', () => {
+  //   test('Does not call callback', () => {
+  //     expect.assertions(1);
+  //
+  //     const result = Result.ok(1);
+  //
+  //     const and = result.isErrAnd((e: undefined) => {
+  //       expect(true).toBe(true);
+  //     });
+  //
+  //     expect(and).toBe(false);
+  //   });
+  // });
+
   describe('unwrap', () => {
     test('Returns value', () => {
       const result = ok('ok value');
@@ -174,24 +188,16 @@ describe('Ok', () => {
 
   describe('inspect', () => {
     test('Calls inspect callback', () => {
-      expect.assertions(1);
-      const result = Result.ok('ok');
-
-      result.inspect((v) => {
-        expect(v).toBe('ok');
-      });
-    });
-
-    test('Calls inspect callback', () => {
+      expect.assertions(2);
       const result = Result.ok('ok');
 
       expect(
         result
-          .inspect(() => {
-            // something
+          .inspect((v) => {
+            expect(v).toBe('ok');
           })
-          .isOk(),
-      ).toBe(true);
+          .unwrap(),
+      ).toBe('ok');
     });
   });
 
@@ -232,7 +238,13 @@ describe('Err', () => {
     test('throws error', () => {
       const result = err('err');
 
-      expect(() => result.unwrap()).toThrow();
+      expect(() => result.unwrap()).toThrow('err');
+    });
+
+    test('Throws error with default message', () => {
+      const result = err(1);
+
+      expect(() => result.unwrap()).toThrow('Unwrapping Error Result');
     });
   });
 
@@ -339,6 +351,21 @@ describe('Err', () => {
     });
   });
 
+  describe('isErrAnd', () => {
+    test('Returns result from callback', () => {
+      expect.assertions(2);
+
+      const result = Result.err(1);
+
+      const and = result.isErrAnd((err) => {
+        expect(err).toBe(1);
+        return err === 1;
+      });
+
+      expect(and).toBe(true);
+    });
+  });
+
   describe('inspect', () => {
     test('Does not call inspect callback', () => {
       expect.assertions(1);
@@ -350,17 +377,17 @@ describe('Err', () => {
 
       expect(result.isErr()).toBe(true);
     });
+  });
 
-    test('Calls inspect callback', () => {
-      const result = Result.err('ok');
+  describe('inspectErr', () => {
+    test('Calls callback', () => {
+      expect.assertions(1);
 
-      expect(
-        result
-          .inspect(() => {
-            // something
-          })
-          .isErr(),
-      ).toBe(true);
+      const result = Result.err('err');
+
+      result.inspectErr((err) => {
+        expect(err).toBe('err');
+      });
     });
   });
 });
@@ -373,6 +400,7 @@ describe('Result.wrap', () => {
 
     return 1;
   };
+
   test('Wrapped function returns Result (ok)', () => {
     const wrapped = Result.wrap(testFn);
     const result = wrapped(true);

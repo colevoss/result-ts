@@ -1,5 +1,6 @@
 import { ResultOption } from './types';
 import { Option } from './option';
+import { ResultError } from './error';
 
 export enum ResultType {
   Ok,
@@ -31,7 +32,7 @@ export class Result<T, E> implements ResultOption<T> {
     return this._type;
   }
 
-  public isOk(): this is Ok<T> {
+  public isOk(): this is Ok<T, E> {
     return this._ok;
   }
 
@@ -47,11 +48,22 @@ export class Result<T, E> implements ResultOption<T> {
     return !this._ok;
   }
 
+  public isErrAnd(cb: (v: E) => boolean): boolean {
+    if (this.isOk()) {
+      return false;
+    } else if (this.isErr()) {
+      return cb(this.error);
+    }
+  }
+
   public unwrap(): T {
     if (this.isOk()) {
       return this.value;
     } else if (this.isErr()) {
-      throw this.error;
+      const message =
+        typeof this.error === 'string' ? this.error : 'Unwrapping Error Result';
+
+      throw new ResultError(message, this);
     }
   }
 
@@ -75,7 +87,7 @@ export class Result<T, E> implements ResultOption<T> {
     if (this.isOk()) {
       return this.value;
     } else if (this.isErr()) {
-      throw new Error(reason);
+      throw new ResultError(reason, this);
     }
   }
 
@@ -123,20 +135,19 @@ export class Result<T, E> implements ResultOption<T> {
     if (this.isOk()) {
       cb(this.value);
     }
+
     return this;
   }
 
-  // I don't think this is right.
-  // @see https://doc.rust-lang.org/std/result/enum.Result.html#method.and
-  /* public and<U>(res: Result<U, E>): Result<U, E> { */
-  /*   if (this.isOk()) { */
-  /*     return res; */
-  /*   } else if (this.isErr()) { */
-  /*     return Result.err(this.error); */
-  /*   } */
-  /* } */
+  public inspectErr(cb: (e: E) => void): this {
+    if (this.isErr()) {
+      cb(this.error);
+    }
 
-  public static ok<T>(value: T = null): Ok<T> {
+    return this;
+  }
+
+  public static ok<T, E>(value: T = null): Ok<T, E> {
     return new Ok(value);
   }
 
@@ -152,7 +163,7 @@ export class Result<T, E> implements ResultOption<T> {
         const value = fn(...args);
         return Result.ok(value);
       } catch (e) {
-        return Result.err(e);
+        return Result.err(e.message);
       }
     };
   }
@@ -172,7 +183,7 @@ export class Result<T, E> implements ResultOption<T> {
 export type LazyResult<T> = Result<T, unknown>;
 export type PromiseRes<T, E> = Promise<Result<T, E>>;
 
-export class Ok<T> extends Result<T, undefined> {
+export class Ok<T, E = undefined> extends Result<T, E> {
   public value: T;
 
   constructor(value: T = null) {
@@ -194,7 +205,7 @@ export class Err<T, E> extends Result<T, E> {
   }
 }
 
-export function ok<T>(v: T = null): Ok<T> {
+export function ok<T, E>(v: T = null): Ok<T, E> {
   return Result.ok(v);
 }
 

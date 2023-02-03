@@ -1,5 +1,6 @@
 import { Result } from './result';
 import { ResultOption } from './types';
+import { ResultError } from './error';
 
 export enum OptionType {
   Some,
@@ -81,7 +82,7 @@ export class Option<T> implements ResultOption<T> {
     if (this.isSome()) {
       return this.value;
     } else if (this.isNone()) {
-      throw new Error('Value is None');
+      throw new ResultError('Option value is None');
     }
   }
 
@@ -123,7 +124,7 @@ export class Option<T> implements ResultOption<T> {
     if (this.isSome()) {
       return this.value;
     } else if (this.isNone()) {
-      throw new Error(reason);
+      throw new ResultError(reason);
     }
   }
 
