@@ -1,21 +1,17 @@
-import { ResultOption } from './types';
 import { Option } from './option';
+
+export interface ResultOption<T> {
+  unwrap(): T;
+  unwrapOr(orValue: T): T;
+  expect(reason: string): T;
+}
 
 export enum ResultType {
   Ok,
   Err,
 }
 
-/**
- * Class used for returning and propogating errors. Behaves as an enum with variants
- * `Ok<T>` representing success and containing a value, and `Err<E>` representing
- * an error and containing an error value.
- *
- * This type is inspired by Rust's `Result` type.
- *
- * @see {@link https://doc.rust-lang.org/std/result|Rust Result Docs}
- */
-export class Result<T, E> implements ResultOption<T> {
+export abstract class Result<T, E> {
   public _type: ResultType;
   protected _ok: boolean;
 
@@ -35,106 +31,41 @@ export class Result<T, E> implements ResultOption<T> {
     return this._ok;
   }
 
-  public isOkAnd(cb: (v: T) => boolean): boolean {
-    if (this.isOk()) {
-      return cb(this.value);
-    } else if (this.isErr()) {
-      return false;
-    }
-  }
-
   public isErr(): this is Err<T, E> {
     return !this._ok;
   }
 
-  public unwrap(): T {
-    if (this.isOk()) {
-      return this.value;
-    } else if (this.isErr()) {
-      throw this.error;
-    }
-  }
+  public abstract isOkAnd(cb: (v: T) => boolean): boolean;
 
-  public unwrapOr(orValue: T): T {
-    if (this.isOk()) {
-      return this.value;
-    } else if (this.isErr()) {
-      return orValue;
-    }
-  }
+  public abstract isErrAnd(cb: (v: E) => boolean): boolean;
 
-  public match<A, B>(ok: (value: T) => A, err: (e: Err<T, E>) => B): A | B {
-    if (this.isOk()) {
-      return ok(this.value);
-    } else if (this.isErr()) {
-      return err(this);
-    }
-  }
+  public abstract unwrap(): T;
 
-  public expect(reason: string): T {
-    if (this.isOk()) {
-      return this.value;
-    } else if (this.isErr()) {
-      throw new Error(reason);
-    }
-  }
+  public abstract unwrapOr(orValue: T): T;
 
-  public map<U>(cb: (value: T) => U): Result<U, E> {
-    if (this.isOk()) {
-      return Result.ok(cb(this.value));
-    } else if (this.isErr()) {
-      return Result.err(this.error);
-    }
-  }
+  public abstract match<A, B>(
+    okCb: (value: T) => A,
+    errCb: (e: Err<T, E>) => B,
+  ): A | B;
 
-  public mapOr<U>(orValue: U, cb: (v: T) => U): U {
-    if (this.isOk()) {
-      return cb(this.value);
-    } else if (this.isErr()) {
-      return orValue;
-    }
-  }
+  public abstract expect(reason: string): T;
 
-  public mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<T, E>) => U): U {
-    if (this.isOk()) {
-      return okCb(this.value);
-    } else if (this.isErr()) {
-      return errCb(this);
-    }
-  }
+  public abstract map<U>(cb: (value: T) => U): Ok<U> | Err<T, E>;
 
-  public ok(): Option<T> {
-    if (this.isOk()) {
-      return Option.some(this.value);
-    } else if (this.isErr()) {
-      return Option.none();
-    }
-  }
+  // Update this with cb as first argument
+  public abstract mapOr<U>(orValue: U, cb: (v: T) => U): U;
 
-  public err(): Option<E> {
-    if (this.isOk()) {
-      return Option.none();
-    } else if (this.isErr()) {
-      return Option.some(this.error);
-    }
-  }
+  public abstract mapOrElse<U>(
+    okCb: (v: T) => U,
+    errCb: (e: Err<T, E>) => U,
+  ): U;
 
-  public inspect(cb: (v: T) => void): this {
-    if (this.isOk()) {
-      cb(this.value);
-    }
-    return this;
-  }
+  public abstract ok(): Option<T>;
+  public abstract err(): Option<E>;
 
-  // I don't think this is right.
-  // @see https://doc.rust-lang.org/std/result/enum.Result.html#method.and
-  /* public and<U>(res: Result<U, E>): Result<U, E> { */
-  /*   if (this.isOk()) { */
-  /*     return res; */
-  /*   } else if (this.isErr()) { */
-  /*     return Result.err(this.error); */
-  /*   } */
-  /* } */
+  public abstract inspect(cb: (v: T) => void): this;
+
+  public abstract inspectErr(cb: (e: E) => void): this;
 
   public static ok<T>(value: T = null): Ok<T> {
     return new Ok(value);
@@ -152,12 +83,12 @@ export class Result<T, E> implements ResultOption<T> {
         const value = fn(...args);
         return Result.ok(value);
       } catch (e) {
-        return Result.err(e);
+        return Result.err(e.message);
       }
     };
   }
 
-  public static wrapAsync<T>(fn: (...args: unknown[]) => Promise<T>) {
+  public static wrapAsync<T>(fn: (...args: unknown[]) => T) {
     return async (...args: unknown[]) => {
       try {
         const value = await fn(...args);
@@ -169,15 +100,68 @@ export class Result<T, E> implements ResultOption<T> {
   }
 }
 
-export type LazyResult<T> = Result<T, unknown>;
-export type PromiseRes<T, E> = Promise<Result<T, E>>;
-
-export class Ok<T> extends Result<T, undefined> {
+export class Ok<T, E = undefined> extends Result<T, E> {
   public value: T;
 
   constructor(value: T = null) {
     super(true);
     this.value = value;
+  }
+
+  public isOkAnd(cb: (v: T) => boolean): boolean {
+    return cb(this.value);
+  }
+
+  public isErrAnd(_cb: (v: E) => boolean): boolean {
+    return false;
+  }
+
+  public unwrap(): T {
+    return this.value;
+  }
+
+  public unwrapOr(_orValue: T): T {
+    return this.value;
+  }
+
+  public match<A, B>(
+    okCb: (value: T) => A,
+    _errCb: (e: Err<T, E>) => B,
+  ): A | B {
+    return okCb(this.value);
+  }
+
+  public expect(_reason: string): T {
+    return this.value;
+  }
+
+  public map<U>(cb: (value: T) => U): Ok<U> {
+    return new Ok(cb(this.value));
+  }
+
+  public mapOr<U>(_orValue: U, cb: (v: T) => U): U {
+    return cb(this.value);
+  }
+
+  public mapOrElse<U>(okCb: (v: T) => U, _errCb: (e: Err<T, E>) => U): U {
+    return okCb(this.value);
+  }
+
+  public inspect(cb: (v: T) => void): this {
+    cb(this.value);
+    return this;
+  }
+
+  public inspectErr(_cb: (e: E) => void): this {
+    return this;
+  }
+
+  public ok(): Option<T> {
+    return Option.some(this.value);
+  }
+
+  public err(): Option<E> {
+    return Option.none();
   }
 }
 
@@ -192,6 +176,66 @@ export class Err<T, E> extends Result<T, E> {
     this.error = err;
     this.value = value;
   }
+
+  public isOkAnd(_cb: (v: T) => boolean): boolean {
+    return false;
+  }
+
+  public isErrAnd(cb: (v: E) => boolean): boolean {
+    return cb(this.error);
+  }
+
+  public unwrap(): T {
+    const message =
+      typeof this.error === 'string' ? this.error : 'Unwrapping Error Result';
+
+    // TODO: Fix ResultError
+    // throw new ResultError(message, this);
+    throw new Error(message);
+  }
+
+  public unwrapOr(orValue: T): T {
+    return orValue;
+  }
+
+  public match<A, B>(_okCb: (value: T) => A, errCb: (e: Err<T, E>) => B): B {
+    return errCb(this);
+  }
+
+  public expect(reason: string): T {
+    // TODO: Use ResultError
+    throw new Error(reason);
+  }
+
+  public map<U>(_cb: (value: T) => U): Err<T, E> | Ok<U> {
+    return this;
+  }
+
+  public mapOr<U>(orValue: U, _cb: (v: T) => U): U {
+    return orValue;
+  }
+
+  public mapOrElse<U>(_okCb: (v: T) => U, errCb: (e: Err<T, E>) => U): U {
+    return errCb(this);
+  }
+
+  public inspect(_cb: (v: T) => void): this {
+    return this;
+  }
+
+  public inspectErr(cb: (e: E) => void): this {
+    cb(this.error);
+
+    return this;
+  }
+
+  public ok(): Option<T> {
+    return Option.none();
+  }
+
+  public err(): Option<E> {
+    return Option.some(this.error);
+  }
 }
 
 export function ok<T>(v: T = null): Ok<T> {
@@ -203,3 +247,6 @@ export function err<T, E>(err: E, v: T): Err<T, E>;
 export function err<T, E>(err: E, v?: T): Err<T, E> {
   return Result.err(err, v);
 }
+
+export type LazyResult<T> = Result<T, unknown>;
+export type PromiseRes<T, E> = Promise<Result<T, E>>;
