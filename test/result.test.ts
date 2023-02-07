@@ -220,7 +220,7 @@ describe('Ok', () => {
   describe('or', () => {
     test('returns self if is Ok and given Ok', () => {
       const res = new Ok('value');
-      const other = new Ok(1);
+      const other = new Ok('or');
 
       const orValue = res.or(other);
 

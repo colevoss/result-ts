@@ -11,6 +11,7 @@ import {
 import { Option, Some, None, some, none } from './option';
 
 export {
+  Result as IResult,
   Result,
   Ok,
   Err,

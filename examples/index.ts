@@ -15,14 +15,31 @@ const wrappedAsync = wrapAsync(myProm);
 const wrapped = wrap(myFunc);
 
 function testResult(): Result<string, string> {
-  return ok('test');
-  // return err('test');
+  // return ok('test');
+  return err('test');
 }
 
 function testMatch() {
   const res = testResult();
 
-  const x = res.and(ok('asdf'));
+  const y = res.andThen((v) => {
+    return ok(1);
+  });
+
+  const or = res.or(ok('asdf'));
+  const and = res.and(ok('asdf'));
+
+  const z = res.orElse((e) => {
+    return ok('asdf');
+  });
+
+  const x = res.map((v) => {
+    return v.length;
+  });
+
+  res.inspect((v) => {
+    console.log(v.toUpperCase());
+  });
 }
 
 async function main() {

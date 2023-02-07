@@ -5,7 +5,7 @@ export enum OptionType {
   None,
 }
 
-export interface IOption<T> {
+export interface Option<T> {
   type: OptionType;
 
   isSome(): this is Some<T>;
@@ -61,7 +61,7 @@ export interface IOption<T> {
 
   expect(reason: string): T;
 
-  map<U>(cb: (value: T) => U): IOption<U>;
+  map<U>(cb: (value: T) => U): Option<U>;
 
   mapOr<U>(orValue: U, cb: (value: T) => U): U;
 
@@ -74,9 +74,9 @@ export interface IOption<T> {
   inspect(cb: (v: T) => void): this;
 }
 
-export type Option<T> = Some<T> | None<T>;
+// export type Option<T> = Some<T> | None<T>;
 
-export class Some<T> implements IOption<T> {
+export class Some<T> implements Option<T> {
   public type = OptionType.Some;
   public value: T;
 
@@ -112,7 +112,7 @@ export class Some<T> implements IOption<T> {
     return this.value;
   }
 
-  public map<U>(cb: (value: T) => U): IOption<U> {
+  public map<U>(cb: (value: T) => U): Option<U> {
     return new Some(cb(this.value));
   }
 
@@ -139,7 +139,7 @@ export class Some<T> implements IOption<T> {
   }
 }
 
-export class None<T> implements IOption<T> {
+export class None<T> implements Option<T> {
   public type = OptionType.None;
 
   public isSome(): this is Some<never> {
@@ -170,7 +170,7 @@ export class None<T> implements IOption<T> {
     throw err(reason);
   }
 
-  public map<U>(_cb: (value: T) => U): IOption<U> {
+  public map<U>(_cb: (value: T) => U): Option<U> {
     return new None<U>();
   }
 
