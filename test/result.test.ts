@@ -1,16 +1,17 @@
-import { Result, ok, err, Ok } from '../src';
+import { ok, err, wrap, wrapAsync, Ok, Err } from '../src';
+import { ResultType } from '../src/result';
 
-describe('Result.ok', () => {
+describe('ok', () => {
   test('Returns Ok result', () => {
-    const result = Result.ok();
+    const result = ok();
 
     expect(result.isOk()).toBe(true);
   });
 });
 
-describe('Result.err', () => {
+describe('err', () => {
   test('Returns Ok result', () => {
-    const result = Result.err('err');
+    const result = err('err');
 
     expect(result.isErr()).toBe(true);
   });
@@ -34,9 +35,9 @@ describe('err', () => {
 
 describe('Ok', () => {
   test('type is Ok', () => {
-    const result = Result.ok();
+    const result = new Ok();
 
-    expect(result.type).toBe(Result.Ok);
+    expect(result.type).toBe(ResultType.Ok);
   });
 
   describe('constructor', () => {
@@ -57,7 +58,7 @@ describe('Ok', () => {
 
   describe('isOkAnd', () => {
     test('Is true if predicate matches', () => {
-      const result = Result.ok(1);
+      const result = ok(1);
       const isOne = result.isOkAnd((v) => v === 1);
       const isNotOne = result.isOkAnd((v) => v !== 1);
 
@@ -78,9 +79,9 @@ describe('Ok', () => {
     test('Does not call callback', () => {
       expect.assertions(1);
 
-      const result = Result.ok(1);
+      const result = ok(1);
 
-      const and = result.isErrAnd((e: undefined) => {
+      const and = result.isErrAnd(() => {
         expect(true).toBe(true);
         return true;
       });
@@ -99,7 +100,7 @@ describe('Ok', () => {
 
   describe('unwrapOr', () => {
     test('Returns value', () => {
-      const result = Result.ok('ok value');
+      const result = ok('ok value');
 
       expect(result.unwrapOr('not value')).toBe('ok value');
     });
@@ -117,7 +118,7 @@ describe('Ok', () => {
     test('Calls ok callback', () => {
       expect.assertions(2);
 
-      const result = Result.ok('ok value');
+      const result = ok('ok value');
 
       const matchResult = result.match(
         (v) => {
@@ -136,7 +137,7 @@ describe('Ok', () => {
   describe('map', () => {
     test('Returns mapped value', () => {
       expect.assertions(3);
-      const result = Result.ok('ok');
+      const result = ok('ok');
       const mapped = result.map((v) => {
         expect(v).toBe('ok');
         return v.length;
@@ -149,8 +150,8 @@ describe('Ok', () => {
 
   describe('mapOr', () => {
     test('Returns mapped value', () => {
-      const result = Result.ok('ok');
-      const mapped = result.mapOr(0, (v) => v.length);
+      const result = ok('ok');
+      const mapped = result.mapOr((v) => v.length, 0);
 
       expect(mapped).toBe(2);
     });
@@ -158,7 +159,7 @@ describe('Ok', () => {
 
   describe('mapOrElse', () => {
     test('Returns mapped value', () => {
-      const result = Result.ok('ok');
+      const result = ok('ok');
       const mapped = result.mapOrElse(
         (v) => v.length,
         () => 0,
@@ -170,7 +171,7 @@ describe('Ok', () => {
 
   describe('ok', () => {
     test('Returns Option<T>', () => {
-      const result = Result.ok('ok');
+      const result = ok('ok');
       const okResult = result.ok();
 
       expect(okResult.isSome()).toBe(true);
@@ -180,7 +181,7 @@ describe('Ok', () => {
 
   describe('err', () => {
     test('Returns None', () => {
-      const result = Result.ok('ok');
+      const result = ok('ok');
       const err = result.err();
 
       expect(err.isNone()).toBe(true);
@@ -190,7 +191,7 @@ describe('Ok', () => {
   describe('inspect', () => {
     test('Calls inspect callback', () => {
       expect.assertions(2);
-      const result = Result.ok('ok');
+      const result = ok('ok');
 
       expect(
         result
@@ -206,7 +207,7 @@ describe('Ok', () => {
     test('Does not call callback', () => {
       expect.assertions(1);
 
-      const result = Result.ok('ok');
+      const result = ok('ok');
 
       result.inspectErr(() => {
         expect(true).toBe(true);
@@ -216,21 +217,55 @@ describe('Ok', () => {
     });
   });
 
-  /* describe('and', () => { */
-  /*   const res1 = Result.ok('ok'); */
-  /*   const res2 = Result.ok(1); */
-  /*   const andRes = res1.and(res2); */
-  /**/
-  /*   expect(andRes.isOk()).toBe(true); */
-  /*   expect(andRes.unwrap()).toBe(1); */
-  /* }); */
+  describe('or', () => {
+    test('returns self if is Ok and given Ok', () => {
+      const res = new Ok('value');
+      const other = new Ok(1);
+
+      const orValue = res.or(other);
+
+      expect(orValue.unwrap()).toBe('value');
+    });
+
+    test('returns self if is Ok and given Err', () => {
+      const res = new Ok('value');
+      const other = new Err(1);
+
+      const orValue = res.or(other);
+
+      expect(orValue.unwrap()).toBe('value');
+    });
+  });
+
+  describe('and', () => {
+    test('returns and value if it is Ok', () => {
+      const res = new Ok('original');
+      const and = new Ok('and');
+
+      const andValue = res.and(and);
+
+      expect(andValue.unwrap()).toBe('and');
+    });
+
+    test('returns and value if it is Err', () => {
+      const res = new Ok('original');
+      const andErr = new Err('err');
+
+      const andValue = res.and(andErr);
+      expect.assertions(1);
+
+      andValue.inspectErr((err) => {
+        expect(err).toBe('err');
+      });
+    });
+  });
 });
 
 describe('Err', () => {
   test('type is Err', () => {
-    const result = Result.err('');
+    const result = new Err('');
 
-    expect(result.type).toBe(Result.Err);
+    expect(result.type).toBe(ResultType.Err);
   });
 
   describe('isErr', () => {
@@ -259,7 +294,7 @@ describe('Err', () => {
     test('Throws error with default message', () => {
       const result = err(1);
 
-      expect(() => result.unwrap()).toThrow('Unwrapping Error Result');
+      expect(() => result.unwrap()).toThrow('Result Error');
     });
   });
 
@@ -305,7 +340,7 @@ describe('Err', () => {
 
   describe('map', () => {
     test('Returns error', () => {
-      const result = Result.err('err');
+      const result = err('err');
       const mapped = result.map(() => 'not called');
 
       expect(mapped.isErr()).toBe(true);
@@ -315,8 +350,8 @@ describe('Err', () => {
 
   describe('mapOr', () => {
     test('Returns mapped value', () => {
-      const result = Result.err('err');
-      const mapped = result.mapOr(0, () => 2);
+      const result = err('err');
+      const mapped = result.mapOr(() => 2, 0);
 
       expect(mapped).toBe(0);
     });
@@ -325,7 +360,7 @@ describe('Err', () => {
   describe('mapOrElse', () => {
     test('Returns mapped value', () => {
       expect.assertions(2);
-      const result = Result.err('ok');
+      const result = err('ok');
       const mapped = result.mapOrElse(
         () => 1,
         () => {
@@ -340,7 +375,7 @@ describe('Err', () => {
 
   describe('ok', () => {
     test('Returns None', () => {
-      const result = Result.err('');
+      const result = err('');
       const okResult = result.ok();
 
       expect(okResult.isNone()).toBe(true);
@@ -349,17 +384,17 @@ describe('Err', () => {
 
   describe('err', () => {
     test('Returns Option with Err result', () => {
-      const result = Result.err('err');
-      const err = result.err();
+      const result = err('err');
+      const testErr = result.err();
 
-      expect(err.isSome()).toBe(true);
-      expect(err.unwrap()).toBe('err');
+      expect(testErr.isSome()).toBe(true);
+      expect(testErr.unwrap()).toBe('err');
     });
   });
 
   describe('isOkAnd', () => {
     test('Returns false', () => {
-      const result = Result.err('doesnt matter');
+      const result = err('doesnt matter');
       const isOk = result.isOkAnd((v) => v === 1);
 
       expect(isOk).toBe(false);
@@ -370,7 +405,7 @@ describe('Err', () => {
     test('Returns result from callback', () => {
       expect.assertions(2);
 
-      const result = Result.err(1);
+      const result = err(1);
 
       const and = result.isErrAnd((err) => {
         expect(err).toBe(1);
@@ -384,7 +419,7 @@ describe('Err', () => {
   describe('inspect', () => {
     test('Does not call inspect callback', () => {
       expect.assertions(1);
-      const result = Result.err('ok');
+      const result = err('ok');
 
       result.inspect((v) => {
         expect(v).toBe('ok');
@@ -398,11 +433,45 @@ describe('Err', () => {
     test('Calls callback', () => {
       expect.assertions(1);
 
-      const result = Result.err('err');
+      const result = err('err');
 
       result.inspectErr((err) => {
         expect(err).toBe('err');
       });
+    });
+  });
+
+  describe('or', () => {
+    test('Returns or value if it is Ok', () => {
+      const err = new Err('err');
+      const ok = new Ok('ok');
+
+      const or = err.or(ok);
+
+      expect(or.unwrap()).toBe('ok');
+    });
+
+    test('Returns or value if it is Err', () => {
+      const err = new Err('err');
+      const otherErr = new Err('or');
+      expect.assertions(1);
+
+      const orErr = err.or(otherErr);
+
+      orErr.inspectErr((err) => expect(err).toBe('or'));
+    });
+  });
+
+  describe('and', () => {
+    test('Returns self', () => {
+      const err = new Err('err');
+      const ok = new Ok('ok');
+
+      const andValue = err.and(ok);
+
+      expect.assertions(1);
+
+      andValue.inspectErr((err) => expect(err).toBe('err'));
     });
   });
 });
@@ -417,7 +486,7 @@ describe('Result.wrap', () => {
   };
 
   test('Wrapped function returns Result (ok)', () => {
-    const wrapped = Result.wrap(testFn);
+    const wrapped = wrap(testFn);
     const result = wrapped(true);
 
     expect(result.isOk()).toBe(true);
@@ -425,7 +494,7 @@ describe('Result.wrap', () => {
   });
 
   test('Wrapped function returns Result (err)', () => {
-    const wrapped = Result.wrap(testFn);
+    const wrapped = wrap(testFn);
     const result = wrapped(false);
 
     expect(result.isErr()).toBe(true);
@@ -435,15 +504,15 @@ describe('Result.wrap', () => {
 
 describe('Result.wrapAsync', () => {
   const testFn = async (pass: boolean) => {
-    if (!pass) {
-      return Promise.reject('rejected');
+    if (pass) {
+      return 1;
     }
 
-    return Promise.resolve(1);
+    throw new Error('rejected');
   };
 
   test('Wrapped async function returns result (ok)', async () => {
-    const wrapped = Result.wrapAsync(testFn);
+    const wrapped = wrapAsync(testFn);
     const result = await wrapped(true);
 
     expect(result.isOk()).toBe(true);
@@ -451,7 +520,7 @@ describe('Result.wrapAsync', () => {
   });
 
   test('Wrapped async function returns result (err)', async () => {
-    const wrapped = Result.wrapAsync(testFn);
+    const wrapped = wrapAsync(testFn);
     const result = await wrapped(false);
 
     expect(result.isErr()).toBe(true);

@@ -1,44 +1,16 @@
-import { ResultOption } from './result';
-import { Result } from './result';
+import { Result, ok, err } from './result';
 
 export enum OptionType {
   Some,
   None,
 }
 
-export abstract class Option<T> implements ResultOption<T> {
-  public _type: OptionType;
-  protected hasValue: boolean;
+export interface IOption<T> {
+  type: OptionType;
 
-  static Some = OptionType.Some;
-  static None = OptionType.None;
+  isSome(): this is Some<T>;
 
-  protected constructor(hasValue: boolean) {
-    this.hasValue = hasValue;
-    this._type = hasValue ? OptionType.Some : OptionType.None;
-  }
-
-  public get type(): OptionType {
-    return this._type;
-  }
-
-  /**
-   * Returns true if value is `Some<T>`
-   *
-   * @returns boolean
-   */
-  public isSome(): this is Some<T> {
-    return this.hasValue;
-  }
-
-  /**
-   * Returns true if value is `None`
-   *
-   * @returns
-   */
-  public isNone(): this is None<T> {
-    return !this.hasValue;
-  }
+  isNone(): this is None<T>;
 
   /**
    * If type is `Some<T>` returns value returned by the given callback.
@@ -55,7 +27,7 @@ export abstract class Option<T> implements ResultOption<T> {
    * @param cb Predicate function called when type is `Some<T>`.
    * @returns boolean
    */
-  public abstract isSomeAnd(cb: (v: T) => boolean): boolean;
+  isSomeAnd(cb: (v: T) => boolean): boolean;
 
   /**
    * If value is `Some<T>` returns `T`. Throws error if value is `None`
@@ -63,7 +35,7 @@ export abstract class Option<T> implements ResultOption<T> {
    * @returns T
    * @throws
    */
-  public abstract unwrap(): T;
+  unwrap(): T;
 
   /**
    * If value is `Some<T>` returns `T`.
@@ -83,39 +55,41 @@ export abstract class Option<T> implements ResultOption<T> {
    * @param {T} orValue - Value returned if type is `None`
    * @returns
    */
-  public abstract unwrapOr(orValue: T): T;
+  unwrapOr(orValue: T): T;
 
-  public abstract match<A, B>(someCb: (value: T) => A, noneCb: () => B): A | B;
+  match<A, B>(someCb: (value: T) => A, noneCb: () => B): A | B;
 
-  public abstract expect(reason: string): T;
+  expect(reason: string): T;
 
-  public abstract map<U>(cb: (value: T) => U): Option<U>;
+  map<U>(cb: (value: T) => U): IOption<U>;
 
-  public abstract mapOr<U>(orValue: U, cb: (value: T) => U): U;
+  mapOr<U>(orValue: U, cb: (value: T) => U): U;
 
-  public abstract mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U;
+  mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U;
 
-  public abstract okOr<E>(errValue: E): Result<T, E>;
+  okOr<E>(errValue: E): Result<T, E>;
 
-  public abstract okOrElse<E>(errCb: () => E): Result<T, E>;
+  okOrElse<E>(errCb: () => E): Result<T, E>;
 
-  public abstract inspect(cb: (v: T) => void): this;
-
-  public static some<T>(value: T): Some<T> {
-    return new Some(value);
-  }
-
-  public static none<T>(): None<T> {
-    return new None();
-  }
+  inspect(cb: (v: T) => void): this;
 }
 
-export class Some<T> extends Option<T> {
+export type Option<T> = Some<T> | None<T>;
+
+export class Some<T> implements IOption<T> {
+  public type = OptionType.Some;
   public value: T;
 
   constructor(value: T) {
-    super(true);
     this.value = value;
+  }
+
+  public isSome(): this is Some<T> {
+    return true;
+  }
+
+  public isNone(): this is None<T> {
+    return false;
   }
 
   public isSomeAnd(cb: (v: T) => boolean): boolean {
@@ -138,7 +112,7 @@ export class Some<T> extends Option<T> {
     return this.value;
   }
 
-  public map<U>(cb: (value: T) => U): Option<U> {
+  public map<U>(cb: (value: T) => U): IOption<U> {
     return new Some(cb(this.value));
   }
 
@@ -151,11 +125,11 @@ export class Some<T> extends Option<T> {
   }
 
   public okOr<E>(_errValue: E): Result<T, E> {
-    return Result.ok(this.value);
+    return ok(this.value);
   }
 
   public okOrElse<E>(_errCb: () => E): Result<T, E> {
-    return Result.ok(this.value);
+    return ok(this.value);
   }
 
   public inspect(cb: (v: T) => void): this {
@@ -165,34 +139,38 @@ export class Some<T> extends Option<T> {
   }
 }
 
-export class None<T> extends Option<T> {
-  constructor() {
-    super(false);
+export class None<T> implements IOption<T> {
+  public type = OptionType.None;
+
+  public isSome(): this is Some<never> {
+    return false;
+  }
+
+  public isNone(): this is None<T> {
+    return true;
   }
 
   public isSomeAnd(_cb: (v: T) => boolean): boolean {
     return false;
   }
 
-  public unwrap(): T {
-    // TODO: Use Better error
-    throw new Error('Option value is None');
+  public unwrap(): never {
+    throw err('Option value is None');
   }
 
   public unwrapOr(orValue: T): T {
     return orValue;
   }
 
-  public match<A, B>(_someCb: (value: T) => A, noneCb: () => B): B {
+  public match<A, B>(_someCb: (value: never) => A, noneCb: () => B): B {
     return noneCb();
   }
 
-  public expect(reason: string): T {
-    // TODO: Use beter errors
-    throw new Error(reason);
+  public expect(reason: string): never {
+    throw err(reason);
   }
 
-  public map<U>(_cb: (value: T) => U): Option<U> {
+  public map<U>(_cb: (value: T) => U): IOption<U> {
     return new None<U>();
   }
 
@@ -205,11 +183,11 @@ export class None<T> extends Option<T> {
   }
 
   public okOr<E>(errValue: E): Result<T, E> {
-    return Result.err(errValue);
+    return err(errValue);
   }
 
   public okOrElse<E>(errCb: () => E): Result<T, E> {
-    return Result.err(errCb());
+    return err(errCb());
   }
 
   public inspect(_cb: (v: T) => void): this {
@@ -218,9 +196,9 @@ export class None<T> extends Option<T> {
 }
 
 export function some<T>(value: T): Some<T> {
-  return Option.some(value);
+  return new Some(value);
 }
 
 export function none<T>(): None<T> {
-  return Option.none();
+  return new None();
 }
