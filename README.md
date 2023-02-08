@@ -15,51 +15,51 @@ language features in this library as well.
 
 
 ## Docs
-- [`Result<T, E>`](#resultt-e)
-  - [`and`](#and)
-  - [`andThen`](#andthen)
-  - [`err`](#err)
-  - [`expect`](#expect)
-  - [`expectErr`](#expecterr)
-  - [`inspect`](#inspect)
-  - [`inspectErr`](#inspecterr)
-  - [`isErr`](#iserr)
-  - [`isErrAnd`](#iserrand)
-  - [`isOk`](#isok)
-  - [`isOkAnd`](#isokand)
-  - [`map`](#map)
-  - [`mapOr`](#mapor)
-  - [`mapOrElse`](#maporelse)
-  - [`ok`](#ok)
-  - [`or`](#or)
-  - [`orElse`](#orelse)
-  - [`unwrap`](#unwrap)
-  - [`unwrapErr`](#unwraperr)
-  - [`unwrapOr`](#unwrapor)
-  - [`unwrapOrElse`](#unwraporelse)
-- [`Option<T>`](#optiont)
-  - [`and`](#and-1)
-  - [`andThen`](#andthen-1)
-  - [`expect`](#expect-1)
-  - [`filter`](#filter)
-  - [`inspect`](#inspect-1)
-  - [`isNone`](#isnone)
-  - [`isSome`](#issome)
-  - [`isSomeAnd`](#issomeand)
-  - [`map`](#map-1)
-  - [`mapOr`](#mapor-1)
-  - [`mapOrElse`](#maporelse-1)
-  - [`okOr`](#okor)
-  - [`okOrElse`](#okorelse)
-  - [`or`](#or-1)
-  - [`orElse`](#orelse-1)
-  - [`unwrap`](#unwrap-1)
-  - [`unwrapOr`](#unwrapor-1)
-  - [`unwrapOrElse`](#unwraporelse-1)
-  - [`xor`](#xor)
+- [Result<T, E>](#resultt-e)
+  - [and](#and)
+  - [andThen](#andthen)
+  - [err](#err)
+  - [expect](#expect)
+  - [expectErr](#expecterr)
+  - [inspect](#inspect)
+  - [inspectErr](#inspecterr)
+  - [isErr](#iserr)
+  - [isErrAnd](#iserrand)
+  - [isOk](#isok)
+  - [isOkAnd](#isokand)
+  - [map](#map)
+  - [mapOr](#mapor)
+  - [mapOrElse](#maporelse)
+  - [ok](#ok)
+  - [or](#or)
+  - [orElse](#orelse)
+  - [unwrap](#unwrap)
+  - [unwrapErr](#unwraperr)
+  - [unwrapOr](#unwrapor)
+  - [unwrapOrElse](#unwraporelse)
+- [Option<T>](#optiont)
+  - [and](#and-1)
+  - [andThen](#andthen-1)
+  - [expect](#expect-1)
+  - [filter](#filter)
+  - [inspect](#inspect-1)
+  - [isNone](#isnone)
+  - [isSome](#issome)
+  - [isSomeAnd](#issomeand)
+  - [map](#map-1)
+  - [mapOr](#mapor-1)
+  - [mapOrElse](#maporelse-1)
+  - [okOr](#okor)
+  - [okOrElse](#okorelse)
+  - [or](#or-1)
+  - [orElse](#orelse-1)
+  - [unwrap](#unwrap-1)
+  - [unwrapOr](#unwrapor-1)
+  - [unwrapOrElse](#unwraporelse-1)
+  - [xor](#xor)
 
 
-## `Result<T, E>`
+## Result<T, E>
 
 ```ts
 // Example Results
@@ -68,7 +68,7 @@ const okResult = new Ok('ok value');
 const errResult = new Err('error value');
 ```
 
-### `and`
+### and
 
 ```ts
 and<U>(andValue: Result<U, E>): Result<U, E>
@@ -104,7 +104,7 @@ const xAndY = x.and(y);
 assert.equal(xAndY.unwrapErr(), 'early error');
 ```
 
-### `andThen`
+### andThen
 
 ```ts
 andThen<U>(cb: (v: T) => Result<U, E>): Result<U, E>
@@ -134,7 +134,7 @@ const y = x.andThen(() => {
 assert.equal(y.unwrapErr(), 'early error');
 ```
 
-### `err`
+### err
 
 ```ts
 err(): Option.Option<E>
@@ -157,7 +157,7 @@ const y = x.err(); // None
 assert.ok(y.isNone());
 ```
 
-### `expect`
+### expect
 
 ```ts
 expect(reason: string): T
@@ -191,7 +191,7 @@ const xVal = x.expect('should be ok value');
 // }
 ```
 
-### `expectErr`
+### expectErr
 
 ```ts
 expectErr(reason: string): E
@@ -220,7 +220,7 @@ const xVal = x.expectErr('should be err value')
 // }
 ```
 
-### `inspect`
+### inspect
 
 ```ts
 inspect(cb: (v: T) => void): this
@@ -247,7 +247,7 @@ x.inspect(() => {
 });
 ```
 
-### `inspectErr`
+### inspectErr
 
 ```ts
 inspectErr(cb: (e: E) => void): this
@@ -273,7 +273,7 @@ x.inspectErr(() => {
 })
 ```
 
-### `isErr`
+### isErr
 
 ```ts
 isErr(): this is Err<E>; // boolean
@@ -291,7 +291,7 @@ const y = new Err('error');
 assert.ok(y.isErr())
 ```
 
-### `isErrAnd`
+### isErrAnd
 
 ```ts
 isErrAnd(cb: (v: E) => boolean): boolean
@@ -318,7 +318,7 @@ const y = x.isErrAnd((xVal) => {
 assert.ok(!y);
 ```
 
-### `isOk`
+### isOk
 
 ```ts
 isOk(): this is Ok<T>; // boolean
@@ -336,7 +336,7 @@ const y = new Err('error');
 assert.ok(!y.isOk())
 ```
 
-### `isOkAnd`
+### isOkAnd
 
 ```ts
 isOkAnd(cb: (v: T) => boolean): boolean
@@ -362,7 +362,7 @@ const y = x.isOkAnd((xVal) => {
 assert.ok(!y);
 ```
 
-### `map`
+### map
 
 ```ts
 map<U>(cb: (value: T) => U): Result<U, E>
@@ -381,7 +381,7 @@ const y = x.map((xVal) => {
 assert.equal(y.unwrap(), 2);
 ```
 
-### `mapOr`
+### mapOr
 
 ```ts
 mapOr<U>(cb: (v: T) => U, orValue: U): U
@@ -408,7 +408,7 @@ const y = x.mapOr((xVal) => {
 assert.equal(y, 10);
 ```
 
-### `mapOrElse`
+### mapOrElse
 
 ```ts
 mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<E>) => U): U
@@ -433,7 +433,7 @@ const y = x.mapOrElse(cb, cb);
 assert.equal(y, 3);
 ```
 
-### `ok`
+### ok
 
 ```ts
 ok(): Option<T>
@@ -457,7 +457,7 @@ const y = x.ok();
 assert.ok(y.isNone());
 ```
 
-### `or`
+### or
 
 ```ts
 or<F>(orValue: Result<T, F>): Result<T, F>
@@ -497,7 +497,7 @@ assert.ok(xOrY.isOk());
 assert.equal(xOrY.unwrap(), 'ok');
 ```
 
-### `orElse`
+### orElse
 
 ```ts
 orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F>;
@@ -519,7 +519,7 @@ assert.equal(e.orElse(createOk).unwrap(), 'ok')
 assert.equal(e.orElse(createErr).unwrapErr(), 'err')
 ```
 
-### `unwrap`
+### unwrap
 
 ```ts
 unwrap(): T
@@ -548,7 +548,7 @@ x.unwrap() // Throws
 // }
 ```
 
-### `unwrapErr`
+### unwrapErr
 
 ```ts
 unwrapErr(): E
@@ -577,7 +577,7 @@ x.unwrapErr(); // Throws
 // }
 ```
 
-### `unwrapOr`
+### unwrapOr
 
 ```ts
 unwrapOr(orValue: T): T
@@ -597,7 +597,7 @@ const x = new Err('error');
 assert.equal(x.unwrapOr(0), 0);
 ```
 
-### `unwrapOrElse`
+### unwrapOrElse
 
 ```ts
 unwrapOrElse(cb: (e: E) => T): T
@@ -617,7 +617,7 @@ const x = new Err('ok');
 assert.equal(x.unwrapOrElse(cb), 'or else')
 ```
 
-## `Option<T>`
+## Option<T>
 
 ```ts
 // Example Option
@@ -626,7 +626,7 @@ const someOption = new Some('some value');
 const noneOption = new None();
 ```
 
-### `and`
+### and
 
 ```ts
 and<U>(andValue: Option<U>): Option<U>;
@@ -658,7 +658,7 @@ const y = new None();
 assert.ok(x.and(y).isNone());
 ```
 
-### `andThen`
+### andThen
 
 ```ts
 andThen<U>(cb: (v: T) => Option<U>): Option<U>
@@ -691,7 +691,7 @@ const y = x.andThen(() => new None());
 assert.ok(y.isNone());
 ```
 
-### `expect`
+### expect
 
 ```ts
 expect(reason: string): T
@@ -719,7 +719,7 @@ x.expect('should be some'): // Throws
 // }
 ```
 
-### `filter`
+### filter
 
 ```ts
 filter(predicate: (v: T) => boolean): Option<T>
@@ -746,7 +746,7 @@ const none = new None();
 assert.ok(none.filter(isEven).isNone());
 ```
 
-### `inspect`
+### inspect
 
 ```ts
 inspect(cb: (v: T) => void): this
@@ -771,7 +771,7 @@ x.inspect((someVal) => {
 });
 ```
 
-### `isNone`
+### isNone
 
 ```ts
 isNone(): this is None;
@@ -791,7 +791,7 @@ const x = new None();
 assert.ok(x.isNone());
 ```
 
-### `isSome`
+### isSome
 
 ```ts
 isSome(): this is Some<T>
@@ -811,7 +811,7 @@ const x = new None();
 assert.ok(!x.isSome());
 ```
 
-### `isSomeAnd`
+### isSomeAnd
 
 ```ts
 isSomeAnd(cb: (v: T) => boolean): boolean
@@ -835,7 +835,7 @@ const x = new None();
 assert.ok(!x.isSomeAnd(isOne));
 ```
 
-### `map`
+### map
 
 ```ts
 map<U>(cb: (value: T) => U): Option<U>
@@ -858,7 +858,7 @@ const y = new None();
 assert.ok(y.map(len).isNone());
 ```
 
-### `mapOr`
+### mapOr
 
 ```ts
 mapOr<U>(cb: (value: T) => U, orValue: U): U;
@@ -881,7 +881,7 @@ const x = new None();
 assert.equal(x.mapOr(len, 0), 0);
 ```
 
-### `mapOrElse`
+### mapOrElse
 
 ```ts
 mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U
@@ -904,7 +904,7 @@ const x = new None();
 assert.equal(x.mapOrElse(len, noneLen), 10000);
 ```
 
-### `okOr`
+### okOr
 
 ```ts
 okOr<E>(errValue: E): Result<T, E>
@@ -929,7 +929,7 @@ assert.ok(res.isErr());
 assert.equal(res.unwrapErr(), 'bad');
 ```
 
-### `okOrElse`
+### okOrElse
 
 ```ts
 okOrElse<E>(errCb: () => E): Result<T, E>
@@ -956,7 +956,7 @@ assert.ok(x.isErr());
 assert.equal(x.unwrapErr(), 0);
 ```
 
-### `or`
+### or
 
 ```ts
 or(orValue: Option<T>): Option<T>
@@ -996,7 +996,7 @@ const or = x.or(y);
 assert.ok(x.isNone());
 ```
 
-### `orElse`
+### orElse
 
 ```ts
 orElse(cb: () => Option<T>): Option<T>
@@ -1031,7 +1031,7 @@ const orElse = x.orElse(orNone);
 assert.ok(x.isNone());
 ```
 
-### `unwrap`
+### unwrap
 
 ```ts
 unwrap(): T
@@ -1059,7 +1059,7 @@ x.unwrap(); // Throws
 // }
 ```
 
-### `unwrapOr`
+### unwrapOr
 
 ```ts
 unwrapOr(orValue: T): T;
@@ -1080,7 +1080,7 @@ const x = new None();
 assert.equal(x.unwrapOr('none value'), 'none value');
 ```
 
-### `unwrapOrElse`
+### unwrapOrElse
 
 ```ts
 unwrapOrElse(cb: () => T): T
@@ -1102,7 +1102,7 @@ const x = new None();
 assert.equal(x.unwrapOrElse(orElse), 'or else')
 ```
 
-### `xor`
+### xor
 
 ```ts
 xor(xorValue: Option<T>): Option<T>
