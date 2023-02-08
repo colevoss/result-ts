@@ -59,6 +59,22 @@ describe('Ok', () => {
     });
   });
 
+  describe('unwrapErr', () => {
+    test('throws value', () => {
+      const result = new Ok('1');
+
+      expect(() => result.unwrapErr()).toThrow(new Error('1'));
+    });
+  });
+
+  describe('unwrapOrElse', () => {
+    test('Returns contained value', () => {
+      const result = new Ok(1);
+      const cb = (v: number) => v * 2;
+      expect(result.unwrapOrElse(cb)).toBe(1);
+    });
+  });
+
   describe('unwrapOr', () => {
     test('Returns value', () => {
       const result = new Ok('ok value');
@@ -73,6 +89,13 @@ describe('Ok', () => {
 
       expect(result.expect(`shouldn't trigger`)).toBe('ok value');
     });
+  });
+
+  describe('expectErr', () => {
+    const result = new Ok(1);
+    expect(() => result.expectErr('should be error')).toThrow(
+      'should be error',
+    );
   });
 
   describe('match', () => {

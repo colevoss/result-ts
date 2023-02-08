@@ -34,6 +34,19 @@ describe('None', () => {
     });
   });
 
+  describe('unwrapOrElse', () => {
+    test('Returns value from callback', () => {
+      const option = new None();
+      expect.assertions(2);
+      const cb = () => {
+        expect(1).toBe(1);
+        return 'unwrapOrElse test';
+      };
+
+      expect(option.unwrapOrElse(cb)).toBe('unwrapOrElse test');
+    });
+  });
+
   describe('expect', () => {
     test('Throws error', () => {
       const option = new None();

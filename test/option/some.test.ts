@@ -32,6 +32,19 @@ describe('Some', () => {
     });
   });
 
+  describe('unwrapOrElse', () => {
+    test('Returns contined value', () => {
+      const option = new Some('some');
+      expect.assertions(1);
+      const cb = () => {
+        expect(1).toBe(1);
+        return 'unwrapOrElse test';
+      };
+
+      expect(option.unwrapOrElse(cb)).toBe('some');
+    });
+  });
+
   describe('expect', () => {
     test('Returns value', () => {
       const option = new Some('some value');

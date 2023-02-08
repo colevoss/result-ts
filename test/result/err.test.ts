@@ -31,11 +31,34 @@ describe('Err', () => {
     });
   });
 
+  describe('unwrapErr', () => {
+    test('returns error value', () => {
+      const result = new Err('error value');
+
+      expect(result.unwrapErr()).toBe('error value');
+    });
+  });
+
   describe('unwrapOr', () => {
     test('Returns or value', () => {
       const result = new Err('err');
 
       expect(result.unwrapOr('or value')).toBe('or value');
+    });
+  });
+
+  describe('unwrapOrElse', () => {
+    test('returns value returned from callback', () => {
+      const result = new Err('err');
+
+      expect.assertions(2);
+
+      const cb = (errValue: string) => {
+        expect(errValue).toBe('err');
+        return `${errValue} value`;
+      };
+
+      expect(result.unwrapOrElse(cb)).toBe('err value');
     });
   });
 
@@ -48,6 +71,13 @@ describe('Err', () => {
       };
 
       expect(expectThrow).toThrowError('Should throw');
+    });
+  });
+
+  describe('expectErr', () => {
+    test('Returns error value', () => {
+      const error = new Err('error value');
+      expect(error.expectErr('should be err')).toBe('error value');
     });
   });
 
