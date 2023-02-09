@@ -1,4 +1,4 @@
-import { Result } from './result';
+import { Result, Res } from './result';
 import { Ok } from './ok';
 import { Err } from './err';
 
@@ -38,4 +38,4 @@ export function wrapAsync<F extends (...args: any[]) => Promise<any>>(
   };
 }
 
-export { Result, Ok, Err };
+export { Result, Ok, Err, Res };

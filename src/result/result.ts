@@ -194,3 +194,5 @@ export interface Result<T, E> {
 
 export type LazyResult<T> = Result<T, unknown>;
 export type PromiseRes<T, E> = Promise<Result<T, E>>;
+
+export type Res<T, E> = Ok<T> | Err<E>;

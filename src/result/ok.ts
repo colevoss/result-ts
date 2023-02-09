@@ -4,7 +4,7 @@ import * as Option from '../option';
 
 export class Ok<T> implements Result<T, never> {
   public type = ResultType.Ok;
-  private value: T;
+  public readonly value: T;
 
   constructor(value: T = null) {
     this.value = value;
