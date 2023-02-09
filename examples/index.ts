@@ -1,6 +1,21 @@
-import { Result } from '../src';
+import {
+  err,
+  ok,
+  Result,
+  wrapAsync,
+  wrap,
+  Option,
+  some,
+  Some,
+  Ok,
+  None,
+  Res,
+} from '../src';
 
-// function myFunction(): Res<number, string> {
-function myFunction(pass: boolean): Result<number, string> {
-  return Result.ok(1);
-}
+const test = (): Result<string, string> => {
+  return new Ok('test');
+};
+
+function main() {}
+
+main();
