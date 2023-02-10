@@ -103,22 +103,22 @@ export class Ok<T> implements IResult<T, never> {
   }
 
   public debug(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.debug });
+    resultLogger(this, { msg, level: Result.LogLevel.Debug });
     return this;
   }
 
   public info(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.info });
+    resultLogger(this, { msg, level: Result.LogLevel.Info });
     return this;
   }
 
   public warn(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.warn });
+    resultLogger(this, { msg, level: Result.LogLevel.Warn });
     return this;
   }
 
   public logError(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.error });
+    resultLogger(this, { msg, level: Result.LogLevel.Error });
     return this;
   }
 

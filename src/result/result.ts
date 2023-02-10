@@ -311,12 +311,12 @@ export namespace Result {
   ) => void;
 
   export enum LogLevel {
-    debug = 1,
-    info = 2,
-    warn = 3,
-    error = 4,
-    fatal = 5,
-    none = 0,
+    Debug = 1,
+    Info = 2,
+    Warn = 3,
+    Error = 4,
+    Fatal = 5,
+    None = 0,
   }
 
   export type LoggerOptions = {
@@ -340,19 +340,19 @@ export namespace Result {
 }
 
 let originalLogger: Result.Logger;
-let __log_level__ = Result.LogLevel.debug;
+let __log_level__ = Result.LogLevel.Debug;
 const levelToName = (level: Result.LogLevel) => {
   switch (level) {
-    case Result.LogLevel.debug:
-      return 'DEBUG';
-    case Result.LogLevel.info:
-      return 'INFO';
-    case Result.LogLevel.warn:
-      return 'WARN';
-    case Result.LogLevel.error:
-      return 'ERROR';
-    case Result.LogLevel.fatal:
-      return 'FATAL';
+    case Result.LogLevel.Debug:
+      return '[DEBUG]';
+    case Result.LogLevel.Info:
+      return '[INFO] ';
+    case Result.LogLevel.Warn:
+      return '[WARN] ';
+    case Result.LogLevel.Error:
+      return '[ERROR] ';
+    case Result.LogLevel.Fatal:
+      return '[FATAL]';
     default:
       return '';
   }
@@ -362,14 +362,14 @@ export let resultLogger: Result.Logger = <T, E>(
   result: Result<T, E>,
   options: Result.LoggerOptions = {},
 ) => {
-  const level = options.level || Result.LogLevel.info;
+  const level = options.level || Result.LogLevel.Info;
 
-  if (__log_level__ === Result.LogLevel.none || __log_level__ > level) {
+  if (__log_level__ === Result.LogLevel.None || __log_level__ > level) {
     return;
   }
 
   const args = [];
-  let message = `[${levelToName(level)}] `;
+  let message = levelToName(level) + ' ';
 
   if (options.msg !== undefined) {
     message += options.msg;

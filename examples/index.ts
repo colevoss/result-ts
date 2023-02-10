@@ -6,7 +6,7 @@ import { Ok, Err, None, Result, Option } from '../src';
 //   },
 // );
 
-Result.setLogLevel(Result.LogLevel.warn);
+Result.setLogLevel(Result.LogLevel.Debug);
 
 const test = (): Result<string, string> => {
   // return new Ok('test');
