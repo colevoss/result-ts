@@ -1,8 +1,8 @@
-import { some, none } from '../../src';
+import { Option } from '../../src';
 
 describe('some', () => {
   test('returns Some with provided value', () => {
-    const testSome = some('some');
+    const testSome = Option.some('some');
 
     expect(testSome.isSome()).toBe(true);
   });
@@ -10,7 +10,7 @@ describe('some', () => {
 
 describe('none', () => {
   test('returns None', () => {
-    const testNone = none();
+    const testNone = Option.none();
 
     expect(testNone.isNone()).toBe(true);
   });

@@ -7,7 +7,7 @@ export enum OptionType {
   None,
 }
 
-export interface Option<T> {
+export interface IOption<T> {
   type: OptionType;
 
   /**
@@ -71,9 +71,9 @@ export interface Option<T> {
 
   /**
    * Returns the contained `Some` value or computes it from the given callback
-   * 
-   * @param someCb 
-   * @param noneCb 
+   *
+   * @param someCb
+   * @param noneCb
    */
   unwrapOrElse(cb: () => T): T;
 
@@ -128,7 +128,7 @@ export interface Option<T> {
    */
   okOr<E>(errValue: E): Result<T, E>;
 
-   /**
+  /**
    * Transforms the `Option<T>` into `Result<T, E>`, mapping `Some<T>` to `Ok<T>`
    * and `None` to `Err<errCb()>`
    *
@@ -191,4 +191,20 @@ export interface Option<T> {
    * @param predicate
    */
   filter(predicate: (v: T) => boolean): Option<T>;
+}
+
+export type Option<T> = Some<T> | None;
+
+export namespace Option {
+  export function some<T>(value: T): Some<T> {
+    return new Some(value);
+  }
+
+  export function none(): None {
+    return new None();
+  }
+
+  export function isOption<T = any>(val: unknown): val is Option<T> {
+    return val instanceof Some || val instanceof None;
+  }
 }

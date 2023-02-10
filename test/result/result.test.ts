@@ -1,14 +1,14 @@
-import { err, ok, wrap, wrapAsync } from '../../src';
+import { Result } from '../../src';
 
 describe('ok', () => {
   test('Returns new Ok with passed value', () => {
-    const testOk = ok('ok');
+    const testOk = Result.ok('ok');
 
     expect(testOk.unwrap()).toBe('ok');
   });
 
   test('Returns new Ok with default null', () => {
-    const testOk = ok();
+    const testOk = Result.ok();
 
     expect(testOk.unwrap()).toBeNull();
   });
@@ -16,7 +16,7 @@ describe('ok', () => {
 
 describe('err', () => {
   test('Returns new Err with passed value', () => {
-    const testErr = err('err');
+    const testErr = Result.err('err');
 
     expect.assertions(2);
 
@@ -37,7 +37,7 @@ describe('wrap', () => {
   };
 
   test('Wrapped function returns Result (ok)', () => {
-    const wrapped = wrap(testFn);
+    const wrapped = Result.wrap(testFn);
     const result = wrapped(true);
 
     expect(result.isOk()).toBe(true);
@@ -45,7 +45,7 @@ describe('wrap', () => {
   });
 
   test('Wrapped function returns Result (err)', () => {
-    const wrapped = wrap(testFn);
+    const wrapped = Result.wrap(testFn);
     const result = wrapped(false);
 
     expect(result.isErr()).toBe(true);
@@ -63,7 +63,7 @@ describe('wrapAsync', () => {
   };
 
   test('Wrapped async function returns result (ok)', async () => {
-    const wrapped = wrapAsync(testFn);
+    const wrapped = Result.wrapAsync(testFn);
     const result = await wrapped(true);
 
     expect(result.isOk()).toBe(true);
@@ -71,7 +71,7 @@ describe('wrapAsync', () => {
   });
 
   test('Wrapped async function returns result (err)', async () => {
-    const wrapped = wrapAsync(testFn);
+    const wrapped = Result.wrapAsync(testFn);
     const result = await wrapped(false);
 
     expect(result.isErr()).toBe(true);

@@ -1,8 +1,8 @@
-import { Option, OptionType } from './option';
+import { IOption, Option, OptionType } from './option';
 import { Some } from './some';
-import { Err, err } from '../result';
+import { Result, Err } from '../result';
 
-export class None implements Option<never> {
+export class None implements IOption<never> {
   public type = OptionType.None;
 
   public isSome(): this is Some<never> {
@@ -18,7 +18,7 @@ export class None implements Option<never> {
   }
 
   public unwrap(): never {
-    throw err('Option value is None');
+    throw Result.err('Option value is None');
   }
 
   public unwrapOr<T>(orValue: T): T {
@@ -34,7 +34,7 @@ export class None implements Option<never> {
   }
 
   public expect(reason: string): never {
-    throw err(reason);
+    throw Result.err(reason);
   }
 
   public map<U>(_cb: (value: never) => U): Option<U> {
@@ -50,11 +50,11 @@ export class None implements Option<never> {
   }
 
   public okOr<E>(errValue: E): Err<E> {
-    return err(errValue);
+    return Result.err(errValue);
   }
 
   public okOrElse<E>(errCb: () => E): Err<E> {
-    return err(errCb());
+    return Result.err(errCb());
   }
 
   public inspect(_cb: (v: never) => void): this {

@@ -3,11 +3,17 @@ import { Err } from './err';
 import { Ok } from './ok';
 
 export enum ResultType {
-  Ok = 'ResultOk',
-  Err = 'ResultError',
+  Ok = 'Ok',
+  Err = 'Error',
 }
 
-export interface Result<T, E> {
+export type LogData<T, E> = {
+  value?: T;
+  error?: E;
+  type: ResultType;
+};
+
+export interface IResult<T, E> {
   type: ResultType;
 
   /**
@@ -103,7 +109,7 @@ export interface Result<T, E> {
    * @param cb Function to apply to Result
    * @returns `Result<U, E>`
    */
-  map<U>(cb: (value: T) => U): Result<U, E>;
+  map<U>(cb: (value: T) => U): IResult<U, E>;
 
   /**
    * Returns the provided default if Result is `Err` otherwise applies a function
@@ -166,6 +172,7 @@ export interface Result<T, E> {
    *
    * @param andValue value to return if this Result is `Ok`
    */
+  // and<U>(andValue: IResult<U, E>): IResult<U, E>;
   and<U>(andValue: Result<U, E>): Result<U, E>;
 
   /**
@@ -182,6 +189,7 @@ export interface Result<T, E> {
    * @param orValue Value to return if this Result is `Err`
    */
   or<F>(orValue: Result<T, F>): Result<T, F>;
+  // or<U, F>(orValue: Result<U, F>): Result<T, E> | Result<U, F>;
 
   /**
    * Calls `cb` if Result is `Err`, otherwise returns `Ok`
@@ -189,10 +197,199 @@ export interface Result<T, E> {
    * @param cb Function to call if this Result is `Err`. Should return `Result<T, F>`
    * @returns `Result<T, F>`
    */
+  // orElse<F>(cb: (e: E) => IResult<T, F>): IResult<T, F>;
   orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F>;
+
+  debug(msg?: string): this;
+  info(msg?: string): this;
+  warn(msg?: string): this;
+  logError(msg?: string): this;
+
+  pretty(msg?: string): this;
+
+  toJSON(): LogData<T, E>;
 }
 
-export type LazyResult<T> = Result<T, unknown>;
-export type PromiseRes<T, E> = Promise<Result<T, E>>;
+export type Result<T, E> = Ok<T> | Err<E>;
 
-export type Res<T, E> = Ok<T> | Err<E>;
+export namespace Result {
+  export type Lazy<T> = Result<T, unknown>;
+  export type Prom<T, E> = Promise<Result<T, E>>;
+
+  export type OkType<T extends Result<any, any>> = T extends Ok<infer U>
+    ? U
+    : never;
+  export type ErrType<T extends Result<any, any>> = T extends Err<infer E>
+    ? E
+    : never;
+
+  export type OkTypes<T extends Result<any, any>[]> = {
+    [key in keyof T]: T[key] extends Result<infer U, any> ? U : never;
+  };
+
+  export type ErrTypes<T extends Result<any, any>[]> = {
+    [key in keyof T]: T[key] extends Result<any, infer E> ? E : never;
+  };
+
+  export function ok<T>(value: T = null): Ok<T> {
+    return new Ok(value);
+  }
+
+  export function err<E>(error: E): Err<E> {
+    return new Err(error);
+  }
+
+  export function wrap<F extends (...args: any[]) => any>(fn: F) {
+    return (...args: Parameters<typeof fn>): Result<ReturnType<F>, unknown> => {
+      try {
+        const value = fn(...args);
+        return ok(value);
+      } catch (e) {
+        return err(e.message);
+      }
+    };
+  }
+
+  export function wrapAsync<F extends (...args: any[]) => Promise<any>>(
+    fn: F,
+  ): (
+    ...args: Parameters<typeof fn>
+  ) => Promise<Result<Awaited<ReturnType<F>>, unknown>> {
+    return async (
+      ...args: Parameters<typeof fn>
+    ): Promise<Result<Awaited<ReturnType<F>>, unknown>> => {
+      try {
+        const value = await fn(...args);
+        return ok(value);
+      } catch (e) {
+        return err(e.message);
+      }
+    };
+  }
+
+  export function all<T extends Result<any, any>[]>(
+    ...results: T
+  ): Result<OkTypes<T>, ErrTypes<T>[number]> {
+    const okValues = [];
+
+    for (const result of results) {
+      if (result.isErr()) {
+        return result;
+      }
+
+      okValues.push(result.value);
+    }
+
+    return new Ok(okValues as OkTypes<T>);
+  }
+
+  export function any<T extends Result<any, any>[]>(
+    ...results: T
+  ): Result<OkTypes<T>[number], ErrTypes<T>> {
+    const errValues = [];
+
+    for (const result of results) {
+      if (result.isOk()) {
+        return result as Ok<OkTypes<T>[number]>;
+      }
+
+      errValues.push(result.error);
+    }
+
+    return new Err(errValues as ErrTypes<T>);
+  }
+
+  export function isResult<T = any, E = any>(
+    val: unknown,
+  ): val is Result<T, E> {
+    return val instanceof Ok || val instanceof Err;
+  }
+
+  export type Logger = <T, E>(
+    result: Result<T, E>,
+    options: LoggerOptions,
+  ) => void;
+
+  export enum LogLevel {
+    debug = 1,
+    info = 2,
+    warn = 3,
+    error = 4,
+    fatal = 5,
+    none = 0,
+  }
+
+  export type LoggerOptions = {
+    msg?: string;
+    pretty?: boolean;
+    level?: LogLevel;
+  };
+
+  export function setLogger(logger: Logger): void {
+    originalLogger = resultLogger;
+    resultLogger = logger;
+  }
+
+  export function resetLogger(): void {
+    resultLogger = originalLogger;
+  }
+
+  export function setLogLevel(level: Result.LogLevel): void {
+    __log_level__ = level;
+  }
+}
+
+let originalLogger: Result.Logger;
+let __log_level__ = Result.LogLevel.debug;
+const levelToName = (level: Result.LogLevel) => {
+  switch (level) {
+    case Result.LogLevel.debug:
+      return 'DEBUG';
+    case Result.LogLevel.info:
+      return 'INFO';
+    case Result.LogLevel.warn:
+      return 'WARN';
+    case Result.LogLevel.error:
+      return 'ERROR';
+    case Result.LogLevel.fatal:
+      return 'FATAL';
+    default:
+      return '';
+  }
+};
+
+export let resultLogger: Result.Logger = <T, E>(
+  result: Result<T, E>,
+  options: Result.LoggerOptions = {},
+) => {
+  const level = options.level || Result.LogLevel.info;
+
+  if (__log_level__ === Result.LogLevel.none || __log_level__ > level) {
+    return;
+  }
+
+  const args = [];
+  let message = `[${levelToName(level)}] `;
+
+  if (options.msg !== undefined) {
+    message += options.msg;
+  }
+
+  args.push(message);
+
+  if (options.pretty) {
+    args.push(
+      `${options.msg ? '\n' : ''}${result.type} ${JSON.stringify(
+        result,
+        null,
+        2,
+      )}`,
+    );
+  } else {
+    args.push(result.toJSON());
+  }
+
+  const log = result.isOk() ? console.log : console.error;
+
+  log(...args);
+};
