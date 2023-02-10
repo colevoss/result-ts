@@ -1,8 +1,12 @@
-import { IResult, Result, ResultType, LogData, resultLogger } from './result';
+import { IResult, Result, ResultType, logResult } from './result';
 import { Ok } from './ok';
 import { Option } from '../option';
+import { ResultLoggable, LogData } from './logging';
 
-export class Err<E> extends Error implements IResult<never, E> {
+export class Err<E>
+  extends Error
+  implements IResult<never, E>, ResultLoggable<never, E>
+{
   public readonly type = ResultType.Err;
   public readonly error: E;
 
@@ -106,32 +110,58 @@ export class Err<E> extends Error implements IResult<never, E> {
   }
 
   public debug(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Debug });
+    logResult(this, Result.LogLevel.debug, msg);
     return this;
   }
 
   public info(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Info });
+    logResult(this, Result.LogLevel.info, msg);
     return this;
   }
 
   public warn(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Warn });
+    logResult(this, Result.LogLevel.warn, msg);
     return this;
   }
 
-  public logError(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Error });
+  public errorLog(msg?: string): this {
+    logResult(this, Result.LogLevel.error, msg);
     return this;
   }
 
-  public pretty(msg?: string): this {
-    resultLogger(this, { msg, pretty: true });
+  public okDebug(msg?: string): this {
     return this;
+  }
+
+  public okInfo(msg?: string): this {
+    return this;
+  }
+
+  public okWarn(msg?: string): this {
+    return this;
+  }
+
+  public okError(msg?: string): this {
+    return this;
+  }
+
+  public errDebug(msg?: string): this {
+    return this.debug(msg);
+  }
+
+  public errInfo(msg?: string): this {
+    return this.info(msg);
+  }
+
+  public errWarn(msg?: string): this {
+    return this.warn(msg);
+  }
+
+  public errError(msg?: string): this {
+    return this.errorLog(msg);
   }
 
   public toJSON(): LogData<never, E> {
-    // return this.log();
     return {
       error: this.error,
       type: this.type,

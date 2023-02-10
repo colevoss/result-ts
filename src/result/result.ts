@@ -1,17 +1,12 @@
 import { Option } from '../option';
 import { Err } from './err';
 import { Ok } from './ok';
+import { LogData } from './logging';
 
 export enum ResultType {
   Ok = 'Ok',
   Err = 'Error',
 }
-
-export type LogData<T, E> = {
-  value?: T;
-  error?: E;
-  type: ResultType;
-};
 
 export interface IResult<T, E> {
   type: ResultType;
@@ -200,14 +195,14 @@ export interface IResult<T, E> {
   // orElse<F>(cb: (e: E) => IResult<T, F>): IResult<T, F>;
   orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F>;
 
-  debug(msg?: string): this;
-  info(msg?: string): this;
-  warn(msg?: string): this;
-  logError(msg?: string): this;
+  // debug(msg?: string): this;
+  // info(msg?: string): this;
+  // warn(msg?: string): this;
+  // logError(msg?: string): this;
 
-  pretty(msg?: string): this;
+  // pretty(msg?: string): this;
 
-  toJSON(): LogData<T, E>;
+  // toJSON(): LogData<T, E>;
 }
 
 export type Result<T, E> = Ok<T> | Err<E>;
@@ -305,19 +300,7 @@ export namespace Result {
     return val instanceof Ok || val instanceof Err;
   }
 
-  export type Logger = <T, E>(
-    result: Result<T, E>,
-    options: LoggerOptions,
-  ) => void;
-
-  export enum LogLevel {
-    Debug = 1,
-    Info = 2,
-    Warn = 3,
-    Error = 4,
-    Fatal = 5,
-    None = 0,
-  }
+  export type Logger = <T, E>(logData: LoggerData<T, E>) => void;
 
   export type LoggerOptions = {
     msg?: string;
@@ -325,71 +308,130 @@ export namespace Result {
     level?: LogLevel;
   };
 
+  export type LoggerData<T, E> = {
+    msg?: string;
+    data: LogData<T, E>;
+    level: LogLevel;
+    levelVal: LogLevelNumber;
+  };
+
+  export type LogLevel = keyof typeof levelsMap;
+
+  export const LogLevel = {
+    debug: 'debug',
+    info: 'info',
+    warn: 'warn',
+    error: 'error',
+    fatal: 'fatal',
+  } as const;
+
+  export type LogLevelNumber = (typeof levelsMap)[LogLevel];
+
   export function setLogger(logger: Logger): void {
-    originalLogger = resultLogger;
     resultLogger = logger;
   }
 
   export function resetLogger(): void {
-    resultLogger = originalLogger;
+    resultLogger = defaultLogger;
   }
 
-  export function setLogLevel(level: Result.LogLevel): void {
+  export function setLogLevel(level: LogLevel): void {
     __log_level__ = level;
   }
 }
 
-let originalLogger: Result.Logger;
-let __log_level__ = Result.LogLevel.Debug;
-const levelToName = (level: Result.LogLevel) => {
-  switch (level) {
-    case Result.LogLevel.Debug:
-      return '[DEBUG]';
-    case Result.LogLevel.Info:
-      return '[INFO] ';
-    case Result.LogLevel.Warn:
-      return '[WARN] ';
-    case Result.LogLevel.Error:
-      return '[ERROR] ';
-    case Result.LogLevel.Fatal:
-      return '[FATAL]';
-    default:
-      return '';
+function defaultLogger<T, E>({ msg, data, level }: Result.LoggerData<T, E>) {
+  const args = [];
+
+  args.push(`${level.toUpperCase()}:`);
+
+  if (msg) {
+    args.push(msg);
   }
-};
 
-export let resultLogger: Result.Logger = <T, E>(
+  args.push(data);
+
+  console.log(...args);
+}
+
+const levelsMap = {
+  debug: 2,
+  info: 3,
+  warn: 4,
+  error: 5,
+  fatal: 6,
+} as const;
+
+let __log_level__: Result.LogLevel = Result.LogLevel.info;
+let resultLogger: Result.Logger = defaultLogger;
+
+export function logResult<T, E>(
   result: Result<T, E>,
-  options: Result.LoggerOptions = {},
-) => {
-  const level = options.level || Result.LogLevel.Info;
-
-  if (__log_level__ === Result.LogLevel.None || __log_level__ > level) {
+  level: Result.LogLevel,
+  msg?: string,
+) {
+  if (levelsMap[level] < levelsMap[__log_level__]) {
     return;
   }
 
-  const args = [];
-  let message = levelToName(level) + ' ';
+  resultLogger({
+    msg,
+    data: result.toJSON(),
+    level: level,
+    levelVal: levelsMap[level],
+  });
+}
 
-  if (options.msg !== undefined) {
-    message += options.msg;
-  }
-
-  args.push(message);
-
-  if (options.pretty) {
-    args.push(
-      `${options.msg ? '\n' : ''}${result.type} ${JSON.stringify(
-        result,
-        null,
-        2,
-      )}`,
-    );
-  } else {
-    args.push(result.toJSON());
-  }
-
-  const log = result.isOk() ? console.log : console.error;
-
-  log(...args);
-};
+// let originalLogger: Result.Logger;
+// const levelToName = (level: Result.LogLevel) => {
+//   switch (level) {
+//     case Result.LogLevel.Debug:
+//       return '[DEBUG]';
+//     case Result.LogLevel.Info:
+//       return '[INFO] ';
+//     case Result.LogLevel.Warn:
+//       return '[WARN] ';
+//     case Result.LogLevel.Error:
+//       return '[ERROR] ';
+//     case Result.LogLevel.Fatal:
+//       return '[FATAL]';
+//     default:
+//       return '';
+//   }
+// };
+//
+// export let resultLogger: Result.Logger = <T, E>(
+//   result: Result<T, E>,
+//   options: Result.LoggerOptions = {},
+// ) => {
+//   const level = options.level || Result.LogLevel.Info;
+//
+//   if (__log_level__ === Result.LogLevel.None || __log_level__ > level) {
+//     return;
+//   }
+//
+//   const args = [];
+//   let message = levelToName(level) + ' ';
+//
+//   if (options.msg !== undefined) {
+//     message += options.msg;
+//   }
+//
+//   args.push(message);
+//
+//   if (options.pretty) {
+//     args.push(
+//       `${options.msg ? '\n' : ''}${result.type} ${JSON.stringify(
+//         result,
+//         null,
+//         2,
+//       )}`,
+//     );
+//   } else {
+//     args.push(result.toJSON());
+//   }
+//
+//   const log = result.isOk() ? console.log : console.error;
+//
+//   log(...args);
+// };

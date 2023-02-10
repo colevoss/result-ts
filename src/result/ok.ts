@@ -1,15 +1,16 @@
-import { IResult, LogData, Result, ResultType, resultLogger } from './result';
+import { IResult, Result, ResultType, logResult } from './result';
 import { Err } from './err';
 import { Option } from '../option';
+import { LogData, ResultLoggable } from './logging';
+import { log } from 'util';
 
-export class Ok<T> implements IResult<T, never> {
+export class Ok<T> implements IResult<T, never>, ResultLoggable<T, never> {
   public readonly type = ResultType.Ok;
   public readonly value: T;
 
   constructor(value: T = null) {
     this.value = value;
   }
-
   public isOk(): this is Ok<T> {
     return true;
   }
@@ -103,27 +104,54 @@ export class Ok<T> implements IResult<T, never> {
   }
 
   public debug(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Debug });
+    logResult(this, Result.LogLevel.debug, msg);
     return this;
   }
 
   public info(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Info });
+    logResult(this, Result.LogLevel.info, msg);
     return this;
   }
 
   public warn(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Warn });
+    logResult(this, Result.LogLevel.warn, msg);
     return this;
   }
 
-  public logError(msg?: string): this {
-    resultLogger(this, { msg, level: Result.LogLevel.Error });
+  public errorLog(msg?: string): this {
+    logResult(this, Result.LogLevel.error, msg);
     return this;
   }
 
-  public pretty(msg?: string): this {
-    resultLogger(this, { msg, pretty: true });
+  public okDebug(msg?: string): this {
+    return this.debug(msg);
+  }
+
+  public okInfo(msg?: string): this {
+    return this.info(msg);
+  }
+
+  public okWarn(msg?: string): this {
+    return this.warn(msg);
+  }
+
+  public okError(msg?: string): this {
+    return this.errorLog(msg);
+  }
+
+  public errDebug(msg?: string): this {
+    return this;
+  }
+
+  public errInfo(msg?: string): this {
+    return this;
+  }
+
+  public errWarn(msg?: string): this {
+    return this;
+  }
+
+  public errError(msg?: string): this {
     return this;
   }
 
@@ -132,6 +160,5 @@ export class Ok<T> implements IResult<T, never> {
       value: this.value,
       type: this.type,
     };
-    // return this.log();
   }
 }

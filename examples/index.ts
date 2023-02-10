@@ -6,11 +6,11 @@ import { Ok, Err, None, Result, Option } from '../src';
 //   },
 // );
 
-Result.setLogLevel(Result.LogLevel.Debug);
+Result.setLogLevel(Result.LogLevel.debug);
 
 const test = (): Result<string, string> => {
-  // return new Ok('test');
-  return new Err('test');
+  return new Ok('test');
+  // return new Err('test');
 };
 
 const otherTest = (): Result<string, number> => {
@@ -36,34 +36,11 @@ const otherOtherOpt = (): Option<string> => {
 };
 
 function main() {
-  const t = test().debug('Fetched thing');
+  const t = test();
   const t2 = otherTest();
   const t3 = otherOtherTest();
 
-  // type Y = Result.OkTypes<[Result<number, string>, Result<string, number>]>;
-  // type EY = Result.ErrTypes<[Result<number, string>, Result<string, number>]>;
-
-  const x = t.or(t2);
-  const y = t.and(t3);
-
-  const o = opt();
-  const o2 = otherOpt();
-  const o3 = otherOtherOpt();
-
-  const oOr = o.or(o2);
-  const oAnd = o.and(o3);
-
-  const all = Result.all(t, t3);
-
-  const any = Result.any(t, t3);
-
-  t.info('hello');
-  t.warn('warning');
-  // Result.resetLogger();
-  /* t2.pretty('hello'); */
-
-  // const x = Result.or(t, t2);
-  // const y = Result.and(t, t2);
+  t.okInfo('Good thing').errError('bad thing');
 }
 
 main();
