@@ -1,8 +1,8 @@
-import { Option, OptionType } from './option';
-import { Result, ok } from '../result';
+import { IOption, Option, OptionType } from './option';
+import { Result } from '../result';
 import { None } from './none';
 
-export class Some<T> implements Option<T> {
+export class Some<T> implements IOption<T> {
   public type = OptionType.Some;
   public value: T;
 
@@ -54,11 +54,11 @@ export class Some<T> implements Option<T> {
   }
 
   public okOr<E>(_errValue: E): Result<T, E> {
-    return ok(this.value);
+    return Result.ok(this.value);
   }
 
   public okOrElse<E>(_errCb: () => E): Result<T, E> {
-    return ok(this.value);
+    return Result.ok(this.value);
   }
 
   public inspect(cb: (v: T) => void): this {

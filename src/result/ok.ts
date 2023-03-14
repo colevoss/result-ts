@@ -1,15 +1,16 @@
-import { Result, ResultType } from './result';
+import { IResult, Result, ResultType, logResult } from './result';
 import { Err } from './err';
-import * as Option from '../option';
+import { Option } from '../option';
+import { LogData, ResultLoggable } from './logging';
+import { log } from 'util';
 
-export class Ok<T> implements Result<T, never> {
-  public type = ResultType.Ok;
+export class Ok<T> implements IResult<T, never>, ResultLoggable<T, never> {
+  public readonly type = ResultType.Ok;
   public readonly value: T;
 
   constructor(value: T = null) {
     this.value = value;
   }
-
   public isOk(): this is Ok<T> {
     return true;
   }
@@ -78,29 +79,86 @@ export class Ok<T> implements Result<T, never> {
     return this;
   }
 
-  public ok(): Option.Option<T> {
+  public ok(): Option<T> {
     return Option.some(this.value);
   }
 
-  public err(): Option.Option<never> {
+  public err(): Option<never> {
     return Option.none();
   }
 
-  public and<U>(andValue: Ok<U>): Ok<U>;
-  public and<E>(andValue: Err<E>): Err<E>;
   public and<U, E>(andValue: Result<U, E>): Result<U, E> {
     return andValue;
   }
 
-  public andThen<U>(cb: (v: T) => Result<U, never>): Result<U, never> {
+  public andThen<U, E>(cb: (v: T) => Result<U, E>): Result<U, E> {
     return cb(this.value);
   }
 
-  public or<F>(_orValue: Result<T, F>): Result<T, F> {
+  public or<U, F>(orValue: Result<T, F>): Result<T, never> {
     return this;
   }
 
-  public orElse<F>(_cb: (e: never) => Result<T, F>): Result<T, F> {
+  public orElse<U, F>(cb: (e: never) => Result<T, F>): Result<T, F> {
     return this;
+  }
+
+  public debug(msg?: string): this {
+    logResult(this, Result.LogLevel.debug, msg);
+    return this;
+  }
+
+  public info(msg?: string): this {
+    logResult(this, Result.LogLevel.info, msg);
+    return this;
+  }
+
+  public warn(msg?: string): this {
+    logResult(this, Result.LogLevel.warn, msg);
+    return this;
+  }
+
+  public errorLog(msg?: string): this {
+    logResult(this, Result.LogLevel.error, msg);
+    return this;
+  }
+
+  public okDebug(msg?: string): this {
+    return this.debug(msg);
+  }
+
+  public okInfo(msg?: string): this {
+    return this.info(msg);
+  }
+
+  public okWarn(msg?: string): this {
+    return this.warn(msg);
+  }
+
+  public okError(msg?: string): this {
+    return this.errorLog(msg);
+  }
+
+  public errDebug(msg?: string): this {
+    return this;
+  }
+
+  public errInfo(msg?: string): this {
+    return this;
+  }
+
+  public errWarn(msg?: string): this {
+    return this;
+  }
+
+  public errError(msg?: string): this {
+    return this;
+  }
+
+  public toJSON(): LogData<T, never> {
+    return {
+      value: this.value,
+      type: this.type,
+    };
   }
 }
