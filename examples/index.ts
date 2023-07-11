@@ -1,4 +1,14 @@
+import { pino } from 'pino';
 import { Ok, Err, None, Result, Option } from '../src';
+
+const logger = pino({
+  level: 'debug',
+  transport: {
+    target: 'pino-pretty',
+  },
+});
+
+// Result.setLogger(logger);
 
 // Result.setLogger(
 //   <T, E>(result: Result<T, E>, options: Result.LoggerOptions) => {
@@ -40,7 +50,8 @@ function main() {
   const t2 = otherTest();
   const t3 = otherOtherTest();
 
-  t.okInfo('Good thing').errError('bad thing');
+  // t2.okInfo('Good thing').errError('bad thing');
+  t.debug('Hello');
 }
 
 main();

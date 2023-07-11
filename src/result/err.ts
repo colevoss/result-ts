@@ -1,7 +1,8 @@
-import { IResult, Result, ResultType, logResult } from './result';
+import { IResult, Result, ResultType } from './result';
 import { Ok } from './ok';
 import { Option } from '../option';
 import { ResultLoggable, LogData } from './logging';
+import { Logger, __currentLogger__ } from '../logger';
 
 export class Err<E>
   extends Error
@@ -13,6 +14,7 @@ export class Err<E>
   constructor(err: E) {
     const message = typeof err === 'string' ? err : 'Result Error';
     super(message);
+    // this.stack = null;
 
     this.error = err;
     this.name = 'ResultError';
@@ -109,56 +111,70 @@ export class Err<E>
     return cb(this.error);
   }
 
-  public debug(msg?: string): this {
-    logResult(this, Result.LogLevel.debug, msg);
+  public debug(msg: string, logger: Logger = __currentLogger__): this {
+    // logResult(this, Result.LogLevel.debug, msg);
+    logger.debug(this, msg);
     return this;
   }
 
-  public info(msg?: string): this {
-    logResult(this, Result.LogLevel.info, msg);
+  public info(msg: string, logger: Logger = __currentLogger__): this {
+    logger.info(this, msg);
     return this;
   }
 
-  public warn(msg?: string): this {
-    logResult(this, Result.LogLevel.warn, msg);
+  public warn(msg: string, logger: Logger = __currentLogger__): this {
+    logger.warn(this, msg);
     return this;
   }
 
-  public errorLog(msg?: string): this {
-    logResult(this, Result.LogLevel.error, msg);
+  public errorLog(msg: string, logger: Logger = __currentLogger__): this {
+    logger.error(this, msg);
     return this;
   }
 
-  public okDebug(msg?: string): this {
+  public fatal(msg: string, logger: Logger = __currentLogger__): this {
+    logger.fatal(this, msg);
     return this;
   }
 
-  public okInfo(msg?: string): this {
+  public okDebug(msg: string): this {
     return this;
   }
 
-  public okWarn(msg?: string): this {
+  public okInfo(msg: string): this {
     return this;
   }
 
-  public okError(msg?: string): this {
+  public okWarn(msg: string): this {
     return this;
   }
 
-  public errDebug(msg?: string): this {
-    return this.debug(msg);
+  public okError(msg: string): this {
+    return this;
   }
 
-  public errInfo(msg?: string): this {
-    return this.info(msg);
+  public okFatal(msg: string): this {
+    return this;
   }
 
-  public errWarn(msg?: string): this {
-    return this.warn(msg);
+  public errDebug(msg: string, logger: Logger = __currentLogger__): this {
+    return this.debug(msg, logger);
   }
 
-  public errError(msg?: string): this {
-    return this.errorLog(msg);
+  public errInfo(msg: string, logger: Logger = __currentLogger__): this {
+    return this.info(msg, logger);
+  }
+
+  public errWarn(msg: string, logger: Logger = __currentLogger__): this {
+    return this.warn(msg, logger);
+  }
+
+  public errError(msg: string, logger: Logger = __currentLogger__): this {
+    return this.errorLog(msg, logger);
+  }
+
+  public errFatal(msg: string, logger: Logger = __currentLogger__): this {
+    return this.fatal(msg, logger);
   }
 
   public toJSON(): LogData<never, E> {
