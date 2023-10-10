@@ -23,7 +23,7 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return cb(this.v);
   }
 
-  public isErrAnd(_cb: (v: never) => boolean): boolean {
+  public isErrAnd(cb: (v: never) => boolean): boolean {
     return false;
   }
 
@@ -35,7 +35,7 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     throw this.v;
   }
 
-  public unwrapOrElse(_cb: (e: never) => T): T {
+  public unwrapOrElse(cb: (e: never) => T): T {
     return this.v;
   }
 
@@ -47,7 +47,7 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return okCb(this.v);
   }
 
-  public expect(_reason: string): T {
+  public expect(reason: string): T {
     return this.v;
   }
 
@@ -59,13 +59,13 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return new Ok(cb(this.v));
   }
 
-  public mapOr<U>(cb: (v: T) => U, _orValue: U): U {
-    return cb(this.v);
+  public mapErr<F>(cb: (err: E) => F): Result<T, F> {
+    return this as unknown as Result<T, F>;
   }
 
-  // public mapOrElse<U>(okCb: (v: T) => U, _errCb: (e: Err<U, E>) => U): U {
-  //   return okCb(this.value);
-  // }
+  public mapOr<U>(cb: (v: T) => U, orValue: U): U {
+    return cb(this.v);
+  }
 
   public mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U {
     return okCb(this.v);
@@ -76,7 +76,7 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return this;
   }
 
-  public inspectErr(_cb: (e: never) => void): this {
+  public inspectErr(cb: (e: E) => void): this {
     return this;
   }
 
@@ -96,7 +96,7 @@ export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return cb(this.v);
   }
 
-  public or<F>(_orValue: Result<T, F>): Result<T, F> {
+  public or<F>(orValue: Result<T, F>): Result<T, F> {
     return this as unknown as Result<T, F>;
   }
 

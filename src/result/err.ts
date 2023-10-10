@@ -20,7 +20,7 @@ export class Err<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return true;
   }
 
-  public isOkAnd(_cb: (v: never) => boolean): boolean {
+  public isOkAnd(cb: (v: never) => boolean): boolean {
     return false;
   }
 
@@ -52,27 +52,27 @@ export class Err<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     throw new Error(reason, { cause: this.e });
   }
 
-  public expectErr(_reason: string): E {
+  public expectErr(reason: string): E {
     return this.e;
   }
 
-  public map<U>(_cb: (value: T) => U): Result<U, E> {
+  public map<U>(cb: (value: T) => U): Result<U, E> {
     return this as unknown as Result<U, E>;
   }
 
-  public mapOr<U>(_cb: (v: never) => U, orValue: U): U {
-    return orValue;
+  public mapErr<F>(cb: (err: E) => F): Result<T, F> {
+    return new Err(cb(this.e));
   }
 
-  // public mapOrElse<U>(_okCb: (v: T) => U, errCb: (e: Err<T, E>) => U): U {
-  //   return errCb(this);
-  // }
+  public mapOr<U>(cb: (v: T) => U, orValue: U): U {
+    return orValue;
+  }
 
   public mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U {
     return errCb(this.e);
   }
 
-  public inspect(_cb: (v: T) => void): this {
+  public inspect(cb: (v: T) => void): this {
     return this;
   }
 
@@ -90,11 +90,11 @@ export class Err<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
     return Option.some(this.e);
   }
 
-  public and<U, _>(andValue: Result<U, E>): Result<U, E> {
+  public and<U, E>(andValue: Result<U, E>): Result<U, E> {
     return this as unknown as Result<U, E>;
   }
 
-  public andThen<U>(_cb: (v: T) => Result<U, E>): Result<U, E> {
+  public andThen<U>(cb: (v: T) => Result<U, E>): Result<U, E> {
     return this as unknown as Result<U, E>;
   }
 

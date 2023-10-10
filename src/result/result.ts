@@ -107,6 +107,8 @@ export interface IResult<T, E> {
    */
   map<U>(cb: (value: T) => U): Result<U, E>;
 
+  mapErr<F>(cb: (err: E) => F): Result<T, F>;
+
   /**
    * Returns the provided default if Result is `Err` otherwise applies a function
    * to the contained `Ok` value (if `Ok`)

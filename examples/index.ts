@@ -53,6 +53,8 @@ function main() {
   const t3 = otherOtherTest();
   const o = opt();
 
+  const mappedErr = t.inspect((v) => console.log(v)).mapErr((a) => a.length);
+
   const y = t.match(
     (a) => a.length,
     (e) => e.length,
