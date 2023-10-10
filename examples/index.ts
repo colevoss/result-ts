@@ -54,6 +54,7 @@ function main() {
 
   // t2.okInfo('Good thing').errError('bad thing');
   t.debug('Hello');
+  // t2.okInfo('Good thing').errError('bad thing');
 }
 
 main();
