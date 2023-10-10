@@ -1,5 +1,5 @@
-import { Result } from '../result';
-import { ResultType } from '../result/result';
+import { Result, ResultType } from './result';
+import { Logger } from '../logger';
 
 export type LogData<T, E> = {
   value?: T;
@@ -8,40 +8,23 @@ export type LogData<T, E> = {
 };
 
 export interface ResultLoggable<T, E> {
-  debug(msg?: string): this;
-  info(msg?: string): this;
-  warn(msg?: string): this;
-  errorLog(msg?: string): this;
+  debug(msg: string, logger?: Logger): this;
+  info(msg: string, logger?: Logger): this;
+  warn(msg: string, logger?: Logger): this;
+  errorLog(msg: string, logger?: Logger): this;
+  fatal(msg: string, logger?: Logger): this;
 
-  okDebug(msg?: string): this;
-  okInfo(msg?: string): this;
-  okWarn(msg?: string): this;
-  okError(msg?: string): this;
+  okDebug(msg: string, logger?: Logger): this;
+  okInfo(msg: string, logger?: Logger): this;
+  okWarn(msg: string, logger?: Logger): this;
+  okError(msg: string, logger?: Logger): this;
+  okFatal(msg: string, logger?: Logger): this;
 
-  errDebug(msg?: string): this;
-  errInfo(msg?: string): this;
-  errWarn(msg?: string): this;
-  errError(msg?: string): this;
+  errDebug(msg: string, logger?: Logger): this;
+  errInfo(msg: string, logger?: Logger): this;
+  errWarn(msg: string, logger?: Logger): this;
+  errError(msg: string, logger?: Logger): this;
+  errFatal(msg: string, logger?: Logger): this;
 
   toJSON(): LogData<T, E>;
 }
-
-// export const levelsMap = {
-//   debug: 2,
-//   info: 3,
-//   warn: 4,
-//   error: 5,
-//   fatal: 6,
-// } as const;
-
-// export type LogLevel = keyof typeof levelsMap;
-//
-// export const LogLevel = {
-//   debug: 'debug',
-//   info: 'info',
-//   warn: 'warn',
-//   error: 'error',
-//   fatal: 'fatal',
-// } as const;
-//
-// export type LogLevelNumber = (typeof levelsMap)[LogLevel];

@@ -37,5 +37,9 @@
   "lint-staged": {
     "*.{ts,js}": "eslint --cache --fix",
     "*.{ts,js,md}": "prettier --write"
+  },
+  "dependencies": {
+    "pino": "^8.14.1",
+    "pino-pretty": "^10.0.1"
   }
 }
