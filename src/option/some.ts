@@ -13,7 +13,7 @@ export class Some<T> implements IOption<T> {
     return true;
   }
 
-  public isNone(): this is None {
+  public isNone(): this is None<T> {
     return false;
   }
 
@@ -33,7 +33,7 @@ export class Some<T> implements IOption<T> {
     return this.value;
   }
 
-  public match<A, B>(someCb: (value: T) => A, _noneCb: () => B): A {
+  public match<U>(someCb: (value: T) => U, noneCb: () => U): U {
     return someCb(this.value);
   }
 
@@ -53,7 +53,7 @@ export class Some<T> implements IOption<T> {
     return someCb(this.value);
   }
 
-  public okOr<E>(_errValue: E): Result<T, E> {
+  public okOr<E>(errValue: E): Result<T, E> {
     return Result.ok(this.value);
   }
 
@@ -84,7 +84,7 @@ export class Some<T> implements IOption<T> {
       return this;
     }
 
-    return new None();
+    return new None<T>() as unknown as Option<T>;
   }
 
   public orElse(_cb: () => Option<T>): Option<T> {
@@ -94,6 +94,10 @@ export class Some<T> implements IOption<T> {
   public filter(predicate: (v: T) => boolean): Option<T> {
     const result = predicate(this.value);
 
-    return result ? this : new None();
+    if (result) {
+      return this;
+    }
+
+    return new None<T>() as unknown as Option<T>;
   }
 }

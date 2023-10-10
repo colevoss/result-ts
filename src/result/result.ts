@@ -10,21 +10,21 @@ export enum ResultType {
 }
 
 export interface IResult<T, E> {
-  type: ResultType;
+  t: ResultType;
 
   /**
    * Returns `true` if Result is `Ok`
    *
    * @returns boolean
    */
-  isOk(): this is Ok<T>;
+  isOk(): this is Ok<T, E>;
 
   /**
    * Returns `false` if Result is `Err`
    *
    * @returns boolean
    */
-  isErr(): this is Err<E>;
+  isErr(): this is Err<T, E>;
 
   /**
    * Returns `true` when Result is Ok and the contained value matches predicate
@@ -75,7 +75,7 @@ export interface IResult<T, E> {
    * @param okCb Function called when this Result is `Ok`
    * @param errCb Function called when this Result is `Err`
    */
-  match<A, B>(okCb: (value: T) => A, errCb: (e: Err<E>) => B): A | B;
+  match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
 
   /**
    * Returns the contained value `T` if value is `Ok`.
@@ -105,7 +105,7 @@ export interface IResult<T, E> {
    * @param cb Function to apply to Result
    * @returns `Result<U, E>`
    */
-  map<U>(cb: (value: T) => U): IResult<U, E>;
+  map<U>(cb: (value: T) => U): Result<U, E>;
 
   /**
    * Returns the provided default if Result is `Err` otherwise applies a function
@@ -127,7 +127,8 @@ export interface IResult<T, E> {
    *
    * @returns `U`
    */
-  mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<E>) => U): U;
+  // mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<U, E>) => U): U;
+  mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U;
 
   /**
    * Calls the provided function with contained value if Result is `Ok`.
@@ -194,6 +195,7 @@ export interface IResult<T, E> {
    * @returns `Result<T, F>`
    */
   // orElse<F>(cb: (e: E) => IResult<T, F>): IResult<T, F>;
+  // TODO: Figure out return type inference
   orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F>;
 
   // debug(msg?: string): this;
@@ -206,16 +208,20 @@ export interface IResult<T, E> {
   // toJSON(): LogData<T, E>;
 }
 
-export type Result<T, E> = Ok<T> | Err<E>;
+export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
 export namespace Result {
   export type Lazy<T> = Result<T, unknown>;
   export type Prom<T, E> = Promise<Result<T, E>>;
 
-  export type OkType<T extends Result<any, any>> = T extends Ok<infer U>
+  export type OkType<T extends Result<any, any>> = T extends Ok<infer U, never>
     ? U
     : never;
-  export type ErrType<T extends Result<any, any>> = T extends Err<infer E>
+
+  export type ErrType<T extends Result<any, any>> = T extends Err<
+    never,
+    infer E
+  >
     ? E
     : never;
 
@@ -227,11 +233,11 @@ export namespace Result {
     [key in keyof T]: T[key] extends Result<any, infer E> ? E : never;
   };
 
-  export function ok<T>(value: T = null): Ok<T> {
+  export function ok<T>(value: T = null): Ok<T, never> {
     return new Ok(value);
   }
 
-  export function err<E>(error: E): Err<E> {
+  export function err<E>(error: E): Err<never, E> {
     return new Err(error);
   }
 
@@ -273,7 +279,7 @@ export namespace Result {
         return result;
       }
 
-      okValues.push(result.value);
+      okValues.push(result.v);
     }
 
     return new Ok(okValues as OkTypes<T>);
@@ -286,10 +292,10 @@ export namespace Result {
 
     for (const result of results) {
       if (result.isOk()) {
-        return result as Ok<OkTypes<T>[number]>;
+        return result as Ok<OkTypes<T>[number], any>;
       }
 
-      errValues.push(result.error);
+      errValues.push(result.e);
     }
 
     return new Err(errValues as ErrTypes<T>);

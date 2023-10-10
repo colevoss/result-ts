@@ -23,12 +23,6 @@ describe('Err', () => {
 
       expect(() => result.unwrap()).toThrow('err');
     });
-
-    test('Throws error with default message', () => {
-      const result = new Err(1);
-
-      expect(() => result.unwrap()).toThrow('Result Error');
-    });
   });
 
   describe('unwrapErr', () => {
@@ -92,7 +86,7 @@ describe('Err', () => {
           return v;
         },
         (e) => {
-          expect(e.error).toBe('err value');
+          expect(e).toBe('err value');
           return 'error callback value';
         },
       );
@@ -125,11 +119,11 @@ describe('Err', () => {
       expect.assertions(2);
       const result = new Err('ok');
       const mapped = result.mapOrElse(
-        () => 1,
         () => {
           expect(true).toBe(true);
           return 0;
         },
+        () => 1,
       );
 
       expect(mapped).toBe(0);
@@ -228,7 +222,7 @@ describe('Err', () => {
   describe('and', () => {
     test('Returns self', () => {
       const err = new Err('err');
-      const ok = new Ok('ok');
+      const ok = new Ok<string, string>('ok');
 
       const andValue = err.and(ok);
 

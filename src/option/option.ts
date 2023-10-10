@@ -22,7 +22,7 @@ export interface IOption<T> {
    *
    * @returns boolean
    */
-  isNone(): this is None;
+  isNone(): this is None<T>;
 
   /**
    * If type is `Some<T>` returns value returned by the given callback.
@@ -77,7 +77,7 @@ export interface IOption<T> {
    */
   unwrapOrElse(cb: () => T): T;
 
-  match<A, B>(someCb: (value: T) => A, noneCb: () => B): A | B;
+  match<U>(someCb: (value: T) => U, noneCb: () => U): U;
 
   /**
    * Returns the contained valued `T` if value is `Some`
@@ -193,15 +193,15 @@ export interface IOption<T> {
   filter(predicate: (v: T) => boolean): Option<T>;
 }
 
-export type Option<T> = Some<T> | None;
+export type Option<T> = Some<T> | None<T>;
 
 export namespace Option {
   export function some<T>(value: T): Some<T> {
     return new Some(value);
   }
 
-  export function none(): None {
-    return new None();
+  export function none<T>(): None<T> {
+    return new None<T>();
   }
 
   export function isOption<T = any>(val: unknown): val is Option<T> {

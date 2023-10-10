@@ -2,34 +2,35 @@ import { IOption, Option, OptionType } from './option';
 import { Some } from './some';
 import { Result, Err } from '../result';
 
-export class None implements IOption<never> {
+export class None<T> implements IOption<T> {
   public type = OptionType.None;
 
-  public isSome(): this is Some<never> {
+  public isSome(): this is Some<T> {
     return false;
   }
 
-  public isNone(): this is None {
+  public isNone(): this is None<T> {
     return true;
   }
 
-  public isSomeAnd(_cb: (v: never) => boolean): boolean {
+  public isSomeAnd(cb: (v: T) => boolean): boolean {
     return false;
   }
 
   public unwrap(): never {
-    throw Result.err('Option value is None');
+    // throw Result.err('Option value is None');
+    throw this;
   }
 
-  public unwrapOr<T>(orValue: T): T {
+  public unwrapOr(orValue: T): T {
     return orValue;
   }
 
-  public unwrapOrElse<T>(cb: () => T): T {
+  public unwrapOrElse(cb: () => T): T {
     return cb();
   }
 
-  public match<A, B>(_someCb: (value: never) => A, noneCb: () => B): B {
+  public match<U>(someCb: (value: T) => U, noneCb: () => U): U {
     return noneCb();
   }
 
@@ -37,55 +38,55 @@ export class None implements IOption<never> {
     throw Result.err(reason);
   }
 
-  public map<U>(_cb: (value: never) => U): Option<U> {
-    return new None();
+  public map<U>(cb: (value: T) => U): Option<U> {
+    return new None<U>() as unknown as Option<U>;
   }
 
-  public mapOr<U>(_cb: (value: never) => U, orValue: U): U {
+  public mapOr<U>(cb: (value: T) => U, orValue: U): U {
     return orValue;
   }
 
-  public mapOrElse<U>(_someCb: (v: never) => U, noneCb: () => U): U {
+  public mapOrElse<U>(someCb: (v: T) => U, noneCb: () => U): U {
     return noneCb();
   }
 
-  public okOr<E>(errValue: E): Err<E> {
+  public okOr<E>(errValue: E): Result<T, E> {
     return Result.err(errValue);
   }
 
-  public okOrElse<E>(errCb: () => E): Err<E> {
+  public okOrElse<E>(errCb: () => E): Result<T, E> {
     return Result.err(errCb());
   }
 
-  public inspect(_cb: (v: never) => void): this {
+  public inspect(cb: (v: T) => void): this {
     return this;
   }
 
-  public and<U>(_andValue: Option<U>): Option<U> {
-    return this;
+  public and<U>(andValue: Option<U>): Option<U> {
+    return this as unknown as Option<U>;
   }
 
-  public andThen<U>(_cb: (v: never) => Option<U>): Option<U> {
-    return this;
+  public andThen<U>(cb: (v: T) => Option<U>): Option<U> {
+    return this as unknown as Option<U>;
   }
 
   public or<T>(orValue: Option<T>): Option<T> {
     return orValue;
   }
 
-  public xor<T>(xorValue: Option<T>): Option<T> {
+  public xor(xorValue: Option<T>): Option<T> {
     if (xorValue.isSome()) {
       return xorValue;
     }
 
-    return this;
+    return this as unknown as Option<T>;
   }
 
   public orElse<T>(cb: () => Option<T>): Option<T> {
     return cb();
   }
 
-  public filter(_predicate: (v: never) => boolean): Option<never> {
-    return this;
+  public filter(predicate: (v: T) => boolean): Option<T> {
+    return this as unknown as Option<T>;
   }
 }

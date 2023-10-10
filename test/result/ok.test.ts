@@ -1,4 +1,4 @@
-import { Err, Ok } from '../../src';
+import { Err, Ok, Result } from '../../src';
 
 describe('Ok', () => {
   describe('constructor', () => {
@@ -63,7 +63,7 @@ describe('Ok', () => {
     test('throws value', () => {
       const result = new Ok('1');
 
-      expect(() => result.unwrapErr()).toThrow(new Error('1'));
+      expect(() => result.unwrapErr()).toThrow('1');
     });
   });
 
@@ -146,8 +146,8 @@ describe('Ok', () => {
     test('Returns mapped value', () => {
       const result = new Ok('ok');
       const mapped = result.mapOrElse(
-        (v) => v.length,
         () => 0,
+        (v) => v.length,
       );
 
       expect(mapped).toBe(2);
@@ -214,7 +214,7 @@ describe('Ok', () => {
 
     test('returns self if is Ok and given Err', () => {
       const res = new Ok('value');
-      const other = new Err(1);
+      const other = new Err<string, number>(1);
 
       const orValue = res.or(other);
 

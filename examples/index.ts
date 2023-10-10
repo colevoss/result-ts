@@ -1,3 +1,4 @@
+import './err';
 import { pino } from 'pino';
 import { Ok, Err, None, Result, Option } from '../src';
 
@@ -19,7 +20,8 @@ const logger = pino({
 Result.setLogLevel(Result.LogLevel.debug);
 
 const test = (): Result<string, string> => {
-  return new Ok('test');
+  return Result.ok('test');
+  // return new Ok('test');
   // return new Err('test');
 };
 
@@ -49,11 +51,23 @@ function main() {
   const t = test();
   const t2 = otherTest();
   const t3 = otherOtherTest();
+  const o = opt();
 
-  // const y = t.map(x => x)
+  const y = t.match(
+    (a) => a.length,
+    (e) => e.length,
+  );
+
+  const x = o.match(
+    (x) => 'hello',
+    () => 'helh',
+  );
+
+  // t2.expect('Error should be amazing');
 
   // t2.okInfo('Good thing').errError('bad thing');
-  t.debug('Hello');
+  // t.debug('Hello');
+
   // t2.okInfo('Good thing').errError('bad thing');
 }
 

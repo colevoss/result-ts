@@ -22,7 +22,8 @@ describe('None', () => {
     test('Throws error', () => {
       const option = new None();
 
-      expect(() => option.unwrap()).toThrowError('Option value is None');
+      // expect(() => option.unwrap()).toThrow('Option value is None');
+      expect(() => option.unwrap()).toThrow();
     });
   });
 

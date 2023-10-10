@@ -4,27 +4,19 @@ import { Option } from '../option';
 import { ResultLoggable, LogData } from './logging';
 import { Logger, __currentLogger__ } from '../logger';
 
-export class Err<E>
-  extends Error
-  implements IResult<never, E>, ResultLoggable<never, E>
-{
-  public readonly type = ResultType.Err;
-  public readonly error: E;
+export class Err<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
+  public readonly t = ResultType.Err;
+  public readonly e: E;
 
   constructor(err: E) {
-    const message = typeof err === 'string' ? err : 'Result Error';
-    super(message);
-    // this.stack = null;
-
-    this.error = err;
-    this.name = 'ResultError';
+    this.e = err;
   }
 
-  public isOk(): this is Ok<never> {
+  public isOk(): this is Ok<T, E> {
     return false;
   }
 
-  public isErr(): this is Err<E> {
+  public isErr(): this is Err<T, E> {
     return true;
   }
 
@@ -33,56 +25,59 @@ export class Err<E>
   }
 
   public isErrAnd(cb: (v: E) => boolean): boolean {
-    return cb(this.error);
+    return cb(this.e);
   }
 
   public unwrap(): never {
-    throw this;
+    throw this.e;
   }
 
   public unwrapErr(): E {
-    return this.error;
+    return this.e;
   }
 
   public unwrapOrElse<T>(cb: (e: E) => T): T {
-    return cb(this.error);
+    return cb(this.e);
   }
 
   public unwrapOr<T>(orValue: T): T {
     return orValue;
   }
 
-  public match<A, B>(_okCb: (value: never) => A, errCb: (e: Err<E>) => B): B {
-    return errCb(this);
+  public match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U {
+    return errCb(this.e);
   }
 
   public expect(reason: string): never {
-    // TODO: Use ResultError
-    throw new Error(reason, { cause: this });
+    throw new Error(reason, { cause: this.e });
   }
 
   public expectErr(_reason: string): E {
-    return this.error;
+    return this.e;
   }
 
-  public map<U>(_cb: (value: never) => U): Err<E> | Ok<U> {
-    return this;
+  public map<U>(_cb: (value: T) => U): Result<U, E> {
+    return this as unknown as Result<U, E>;
   }
 
   public mapOr<U>(_cb: (v: never) => U, orValue: U): U {
     return orValue;
   }
 
-  public mapOrElse<U>(_okCb: (v: never) => U, errCb: (e: Err<E>) => U): U {
-    return errCb(this);
+  // public mapOrElse<U>(_okCb: (v: T) => U, errCb: (e: Err<T, E>) => U): U {
+  //   return errCb(this);
+  // }
+
+  public mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U {
+    return errCb(this.e);
   }
 
-  public inspect(_cb: (v: never) => void): this {
+  public inspect(_cb: (v: T) => void): this {
     return this;
   }
 
   public inspectErr(cb: (e: E) => void): this {
-    cb(this.error);
+    cb(this.e);
 
     return this;
   }
@@ -92,23 +87,23 @@ export class Err<E>
   }
 
   public err(): Option<E> {
-    return Option.some(this.error);
+    return Option.some(this.e);
   }
 
-  public and<U, F>(andValue: Result<U, E>): Result<U, E> {
-    return this;
+  public and<U, _>(andValue: Result<U, E>): Result<U, E> {
+    return this as unknown as Result<U, E>;
   }
 
-  public andThen<U, F>(cb: (v: never) => IResult<U, E>): Err<E> {
-    return this;
+  public andThen<U>(_cb: (v: T) => Result<U, E>): Result<U, E> {
+    return this as unknown as Result<U, E>;
   }
 
   public or<T, F>(orValue: Result<T, F>): Result<T, F> {
     return orValue;
   }
 
-  public orElse<T, F>(cb: (e: E) => Result<T, F>): Result<T, F> {
-    return cb(this.error);
+  public orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F> {
+    return cb(this.e);
   }
 
   public debug(msg: string, logger: Logger = __currentLogger__): this {
@@ -179,8 +174,8 @@ export class Err<E>
 
   public toJSON(): LogData<never, E> {
     return {
-      error: this.error,
-      type: this.type,
+      error: this.e,
+      type: this.t,
     };
   }
 }
