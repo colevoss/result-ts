@@ -107,6 +107,13 @@ export interface IResult<T, E> {
    */
   map<U>(cb: (value: T) => U): Result<U, E>;
 
+  /**
+   * Maps a `Result<T, E>` to `Result<T, F>` by applying a funciton to a contained
+   * `Err` value and ignores if `Ok`
+   *
+   * @param cb Function to apply to Err
+   * @returns `Result<T, F>`
+   */
   mapErr<F>(cb: (err: E) => F): Result<T, F>;
 
   /**
@@ -129,7 +136,6 @@ export interface IResult<T, E> {
    *
    * @returns `U`
    */
-  // mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<U, E>) => U): U;
   mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U;
 
   /**

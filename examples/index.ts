@@ -1,4 +1,4 @@
-import './err';
+// import './err';
 import { pino } from 'pino';
 import { Ok, Err, None, Result, Option } from '../src';
 
@@ -64,6 +64,8 @@ function main() {
     (x) => 'hello',
     () => 'helh',
   );
+
+  console.log(t);
 
   // t2.expect('Error should be amazing');
 
