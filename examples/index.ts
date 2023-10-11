@@ -62,12 +62,6 @@ const myFunc = (a: string) => {
   throw 'balls';
 };
 
-function main() {
-  const t = test();
-
-  const x = new Ok('ok val');
-
-  x.unwrapErr(); // Throws
-}
+function main() {}
 
 main();

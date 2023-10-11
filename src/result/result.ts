@@ -146,6 +146,17 @@ export interface IResult<T, E> {
   mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U;
 
   /**
+   * If Result is `Ok` calls provided `okCb` with contained value, otherwise calls
+   * provided `errCb` with contained error value.
+   *
+   * The two provided functions do not need to have the same return type
+   *
+   * @param okCb Function called when this Result is `Ok`
+   * @param errCb Function called when this Result is `Err`
+   */
+  match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
+
+  /**
    * Converts from `Result<T, E>` to `Option<T>`
    *
    * @returns `Option<T>`
@@ -191,17 +202,6 @@ export interface IResult<T, E> {
    * @param cb Callback to return a default value if Result is `Err`
    */
   unwrapOrElse(cb: (e: E) => T): T;
-
-  /**
-   * If Result is `Ok` calls provided `okCb` with contained value, otherwise calls
-   * provided `errCb` with contained error value.
-   *
-   * The two provided functions do not need to have the same return type
-   *
-   * @param okCb Function called when this Result is `Ok`
-   * @param errCb Function called when this Result is `Err`
-   */
-  match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
 
   // debug(msg?: string): this;
   // info(msg?: string): this;

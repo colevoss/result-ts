@@ -450,6 +450,32 @@ const y = x.mapOrElse(cb, cb);
 assert.equal(y, 3);
 ```
 
+### match
+
+```ts
+match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
+```
+
+If Result is `Ok` calls provided `okCb` with contained value, otherwise calls
+provided `errCb` with contained error value.
+
+The two provided functions do not need to have the same return type
+
+```ts
+const square = (n: number) => n * n;
+const squareLength = (s: string) => s.length * s.length;
+
+// Ok
+const ok = new Ok<number, string>(2)
+const x = ok.match(square, squareLength)
+assert.equal(x, 4)
+
+// Err
+const err = new Err<number, string>('err')
+const x = err.match(square, squareLength)
+assert.equal(x, 9)
+```
+
 ### ok
 
 ```ts
