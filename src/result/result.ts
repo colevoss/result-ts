@@ -1,8 +1,8 @@
 import { Option } from '../option';
 import { Err } from './err';
 import { Ok } from './ok';
-import { LogData } from './logging';
-import * as Logger from '../logger';
+// import { LogData } from './logging';
+// import * as Logger from '../logger';
 
 export enum ResultType {
   Ok = 'Ok',
@@ -220,7 +220,8 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
 export namespace Result {
   export type Lazy<T> = Result<T, unknown>;
-  export type Prom<T, E> = Promise<Result<T, E>>;
+  export type Async<T, E> = Promise<Result<T, E>>;
+  export type Void<E> = Result<undefined, E>;
 
   export type OkType<T extends Result<any, any>> = T extends Ok<infer U, never>
     ? U
@@ -249,7 +250,34 @@ export namespace Result {
     return new Err(error);
   }
 
-  export function wrap<F extends (...args: any[]) => any>(fn: F) {
+  type WrapFn = (...args: any[]) => any;
+  type AsyncWrapFn = (...args: any[]) => Promise<any>;
+
+  export function call<F extends WrapFn>(
+    fn: F,
+    ...args: Parameters<F>
+  ): Result<ReturnType<F>, unknown> {
+    try {
+      const value = fn(...args);
+      return ok(value);
+    } catch (e) {
+      return err(e);
+    }
+  }
+
+  export async function callAsync<F extends AsyncWrapFn>(
+    fn: F,
+    ...args: Parameters<F>
+  ): Promise<Result<Awaited<ReturnType<F>>, unknown>> {
+    try {
+      const value = await fn(...args);
+      return ok(value);
+    } catch (e) {
+      return err(e);
+    }
+  }
+
+  export function wrap<F extends WrapFn>(fn: F) {
     return (...args: Parameters<typeof fn>): Result<ReturnType<F>, unknown> => {
       try {
         const value = fn(...args);
@@ -260,7 +288,7 @@ export namespace Result {
     };
   }
 
-  export function wrapAsync<F extends (...args: any[]) => Promise<any>>(
+  export function wrapAsync<F extends AsyncWrapFn>(
     fn: F,
   ): (
     ...args: Parameters<typeof fn>
@@ -277,48 +305,19 @@ export namespace Result {
     };
   }
 
-  export function all<T extends Result<any, any>[]>(
-    ...results: T
-  ): Result<OkTypes<T>, ErrTypes<T>[number]> {
-    const okValues = [];
-
-    for (const result of results) {
-      if (result.isErr()) {
-        return result;
-      }
-
-      okValues.push(result.v);
-    }
-
-    return new Ok(okValues as OkTypes<T>);
-  }
-
-  export function any<T extends Result<any, any>[]>(
-    ...results: T
-  ): Result<OkTypes<T>[number], ErrTypes<T>> {
-    const errValues = [];
-
-    for (const result of results) {
-      if (result.isOk()) {
-        return result as Ok<OkTypes<T>[number], any>;
-      }
-
-      errValues.push(result.e);
-    }
-
-    return new Err(errValues as ErrTypes<T>);
-  }
-
   export function isResult<T = any, E = any>(
     val: unknown,
   ): val is Result<T, E> {
     return val instanceof Ok || val instanceof Err;
   }
 
-  export const setLogLevel = Logger.setLogLevel;
-  export const LogLevel = Logger.LOG_LEVEL;
-  export const setLogger = Logger.setLogger;
+  // export const setLogLevel = Logger.setLogLevel;
+  // export const LogLevel = Logger.LOG_LEVEL;
+  // export const setLogger = Logger.setLogger;
 }
+
+export const ok = Result.ok;
+export const err = Result.err;
 
 // function defaultLogger<T, E>({ msg, data, level }: Result.LoggerData<T, E>) {
 //   const args = [];

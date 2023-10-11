@@ -1,13 +1,13 @@
 // import './err';
-import { pino } from 'pino';
+// import { pino } from 'pino';
 import { Ok, Err, None, Result, Option } from '../src';
 
-const logger = pino({
-  level: 'debug',
-  transport: {
-    target: 'pino-pretty',
-  },
-});
+// const logger = pino({
+//   level: 'debug',
+//   transport: {
+//     target: 'pino-pretty',
+//   },
+// });
 
 // Result.setLogger(logger);
 
@@ -17,17 +17,27 @@ const logger = pino({
 //   },
 // );
 
-Result.setLogLevel(Result.LogLevel.debug);
+// Result.setLogLevel(Result.LogLevel.debug);
+
+const testVoid = (): Result.Void<number> => {
+  // return new Ok()
+  return new Err(1);
+};
 
 const test = (): Result<string, string> => {
-  return Result.ok('test');
+  // return Result.ok('test');
   // return new Ok('test');
-  // return new Err('test');
+  return new Err('test');
 };
 
 const otherTest = (): Result<string, number> => {
-  // return new Ok('asdf');
-  return new Err(1);
+  const t = test();
+
+  if (t.isErr()) {
+    return t.mapErr((e) => e.length);
+  }
+
+  return new Ok('otherTest');
 };
 
 const otherOtherTest = (): Result<number, string> => {
@@ -47,32 +57,14 @@ const otherOtherOpt = (): Option<string> => {
   return Option.some('opt');
 };
 
-function main() {
-  const t = test();
-  const t2 = otherTest();
-  const t3 = otherOtherTest();
-  const o = opt();
+const myFunc = (a: string) => {
+  throw 'balls';
+};
 
-  const mappedErr = t.inspect((v) => console.log(v)).mapErr((a) => a.length);
+async function main() {
+  const res = Result.call(myFunc, '1');
 
-  const y = t.match(
-    (a) => a.length,
-    (e) => e.length,
-  );
-
-  const x = o.match(
-    (x) => 'hello',
-    () => 'helh',
-  );
-
-  console.log(t);
-
-  // t2.expect('Error should be amazing');
-
-  // t2.okInfo('Good thing').errError('bad thing');
-  // t.debug('Hello');
-
-  // t2.okInfo('Good thing').errError('bad thing');
+  console.log(res);
 }
 
 main();

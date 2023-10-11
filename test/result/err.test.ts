@@ -105,6 +105,16 @@ describe('Err', () => {
     });
   });
 
+  describe('mapErr', () => {
+    test('Returns Result with new error value', () => {
+      const result = new Err('err');
+      const mapped = result.mapErr((e) => e.length);
+
+      expect(mapped.isErr()).toBe(true);
+      expect(mapped.unwrapErr()).toBe(3);
+    });
+  });
+
   describe('mapOr', () => {
     test('Returns mapped value', () => {
       const result = new Err('err');

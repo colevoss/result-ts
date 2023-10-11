@@ -1,4 +1,4 @@
-import { None, Some } from '../../src';
+import { None, Some, some } from '../../src';
 
 describe('Some', () => {
   describe('isSome', () => {
@@ -251,6 +251,23 @@ describe('Some', () => {
       });
 
       expect(res.isNone()).toBe(true);
+    });
+  });
+
+  describe('flatten', () => {
+    test('Unwraps one level of an Some option', () => {
+      const deepOption = some(some(1));
+      const flattened = deepOption.flatten();
+      expect(flattened.isSome()).toBe(true);
+      expect(flattened.unwrap()).toBe(1);
+    });
+
+    test("Returns this option if it doesn't contain an option", () => {
+      const flatOption = some('not option');
+      const flattened = flatOption.flatten();
+
+      expect(flattened.isSome()).toBe(true);
+      expect(flattened.unwrap()).toBe('not option');
     });
   });
 });

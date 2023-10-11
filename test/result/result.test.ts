@@ -78,3 +78,65 @@ describe('wrapAsync', () => {
     expect(() => result.unwrap()).toThrowError('rejected');
   });
 });
+
+describe('call', () => {
+  const testFn = (pass: boolean) => {
+    if (pass) {
+      return 1;
+    }
+
+    throw 'failed';
+  };
+
+  test('Calls function and returns Ok', () => {
+    const result = Result.call(testFn, true);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe(1);
+  });
+
+  test('Calls function and returns Err', () => {
+    const result = Result.call(testFn, false);
+
+    expect(result.isErr()).toBe(true);
+    expect(result.unwrapErr()).toBe('failed');
+  });
+});
+
+describe('callAsync', () => {
+  const testFn = async (pass: boolean) => {
+    if (pass) {
+      return 1;
+    }
+
+    throw 'failed';
+  };
+
+  test('Calls async function and returns Ok', async () => {
+    const result = await Result.callAsync(testFn, true);
+
+    expect(result.isOk()).toBe(true);
+    expect(result.unwrap()).toBe(1);
+  });
+
+  test('Calls async function and returns Err', async () => {
+    const result = await Result.callAsync(testFn, false);
+
+    expect(result.isErr()).toBe(true);
+    expect(result.unwrapErr()).toBe('failed');
+  });
+});
+
+describe('isResult', () => {
+  test('Returns true if result', () => {
+    const result = Result.ok();
+
+    expect(Result.isResult(result)).toBe(true);
+  });
+
+  test('Returns false if result', () => {
+    const value = 'not result';
+
+    expect(Result.isResult(value)).toBe(false);
+  });
+});

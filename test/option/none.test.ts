@@ -1,4 +1,4 @@
-import { None, Some } from '../../src';
+import { None, Some, none } from '../../src';
 
 describe('None', () => {
   describe('isSome', () => {
@@ -241,6 +241,14 @@ describe('None', () => {
       });
 
       expect(res).toBe(res);
+    });
+  });
+
+  describe('flatten', () => {
+    test('Returns None if option is non', () => {
+      const noneOption = none();
+      const flattened = noneOption.flatten();
+      expect(flattened.isNone()).toBe(true);
     });
   });
 });

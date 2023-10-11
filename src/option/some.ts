@@ -3,11 +3,13 @@ import { Result } from '../result';
 import { None } from './none';
 
 export class Some<T> implements IOption<T> {
-  public type = OptionType.Some;
-  public value: T;
+  public readonly type = OptionType.Some;
+
+  // value
+  private v: T;
 
   constructor(value: T) {
-    this.value = value;
+    this.v = value;
   }
   public isSome(): this is Some<T> {
     return true;
@@ -18,51 +20,51 @@ export class Some<T> implements IOption<T> {
   }
 
   public isSomeAnd(cb: (v: T) => boolean): boolean {
-    return cb(this.value);
+    return cb(this.v);
   }
 
   public unwrap(): T {
-    return this.value;
+    return this.v;
   }
 
   public unwrapOr(_orValue: T): T {
-    return this.value;
+    return this.v;
   }
 
   public unwrapOrElse(_cb: () => T): T {
-    return this.value;
+    return this.v;
   }
 
   public match<U>(someCb: (value: T) => U, noneCb: () => U): U {
-    return someCb(this.value);
+    return someCb(this.v);
   }
 
   public expect(_reason: string): T {
-    return this.value;
+    return this.v;
   }
 
   public map<U>(cb: (value: T) => U): Option<U> {
-    return new Some(cb(this.value));
+    return new Some(cb(this.v));
   }
 
   public mapOr<U>(cb: (value: T) => U, _orValue: U): U {
-    return cb(this.value);
+    return cb(this.v);
   }
 
   public mapOrElse<U>(someCb: (v: T) => U, _noneCb: () => U): U {
-    return someCb(this.value);
+    return someCb(this.v);
   }
 
   public okOr<E>(errValue: E): Result<T, E> {
-    return Result.ok(this.value);
+    return Result.ok(this.v);
   }
 
   public okOrElse<E>(_errCb: () => E): Result<T, E> {
-    return Result.ok(this.value);
+    return Result.ok(this.v);
   }
 
   public inspect(cb: (v: T) => void): this {
-    cb(this.value);
+    cb(this.v);
 
     return this;
   }
@@ -72,7 +74,7 @@ export class Some<T> implements IOption<T> {
   }
 
   public andThen<U>(cb: (v: T) => Option<U>): Option<U> {
-    return cb(this.value);
+    return cb(this.v);
   }
 
   public or(_orValue: Option<T>): Option<T> {
@@ -92,12 +94,20 @@ export class Some<T> implements IOption<T> {
   }
 
   public filter(predicate: (v: T) => boolean): Option<T> {
-    const result = predicate(this.value);
+    const result = predicate(this.v);
 
     if (result) {
       return this;
     }
 
     return new None<T>() as unknown as Option<T>;
+  }
+
+  public flatten(): Option<T> {
+    if (Option.isOption(this.v)) {
+      return this.v;
+    }
+
+    return this;
   }
 }

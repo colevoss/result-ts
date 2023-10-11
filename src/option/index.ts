@@ -1,4 +1,4 @@
-import { Option } from './option';
+import { Option, some, none } from './option';
 import { Some } from './some';
 import { None } from './none';
 
@@ -10,4 +10,4 @@ import { None } from './none';
 //   return new None();
 // }
 
-export { Option, Some, None };
+export { Option, Some, None, some, none };

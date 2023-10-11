@@ -89,4 +89,8 @@ export class None<T> implements IOption<T> {
   public filter(predicate: (v: T) => boolean): Option<T> {
     return this as unknown as Option<T>;
   }
+
+  public flatten(): Option<T> {
+    return this;
+  }
 }

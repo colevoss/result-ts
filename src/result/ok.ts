@@ -6,16 +6,16 @@ import { Logger, __currentLogger__ } from '../logger';
 
 export class Ok<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
   public readonly t = ResultType.Ok;
-  public readonly v: T;
+  private readonly v: T;
 
   constructor(value: T = null) {
     this.v = value;
   }
-  public isOk(): this is Ok<T, never> {
+  public isOk(): this is Ok<T, E> {
     return true;
   }
 
-  public isErr(): this is Err<T, never> {
+  public isErr(): this is Err<T, E> {
     return false;
   }
 

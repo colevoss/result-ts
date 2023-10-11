@@ -6,7 +6,7 @@ import { Logger, __currentLogger__ } from '../logger';
 
 export class Err<T, E> implements IResult<T, E>, ResultLoggable<T, E> {
   public readonly t = ResultType.Err;
-  public readonly e: E;
+  private readonly e: E;
 
   constructor(err: E) {
     this.e = err;

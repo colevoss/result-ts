@@ -191,6 +191,8 @@ export interface IOption<T> {
    * @param predicate
    */
   filter(predicate: (v: T) => boolean): Option<T>;
+
+  flatten(): Option<T>;
 }
 
 export type Option<T> = Some<T> | None<T>;
@@ -208,3 +210,6 @@ export namespace Option {
     return val instanceof Some || val instanceof None;
   }
 }
+
+export const some = Option.some;
+export const none = Option.none;
