@@ -13,69 +13,27 @@ export interface IResult<T, E> {
   t: ResultType;
 
   /**
-   * Returns `true` if Result is `Ok`
+   * Returns `andValue` if the Result is `Ok`, otherwise returns `Err` value.
    *
-   * @returns boolean
+   * @param {Result<U, E> andValue - value to return if this Result is `Ok`
+   * @returns {Result<U, E>}
    */
-  isOk(): this is Ok<T, E>;
+  and<U>(andValue: Result<U, E>): Result<U, E>;
 
   /**
-   * Returns `false` if Result is `Err`
+   * Calls `cb` if Result is `Ok`, otherwise returns `Err<E>`.
    *
-   * @returns boolean
+   * @param cb Function to call if Result is `Ok`. Should return `Result<U, E>`
+   * @returns `Result<U, E>`
    */
-  isErr(): this is Err<T, E>;
+  andThen<U>(cb: (v: T) => Result<U, E>): Result<U, E>;
 
   /**
-   * Returns `true` when Result is Ok and the contained value matches predicate
+   * Converts from `Result<T, E>` to `Option<E>`
    *
-   * @param cb  Predicate function called when type is `Ok`
-   * @returns boolean
+   * @returns `Option<E>`
    */
-  isOkAnd(cb: (v: T) => boolean): boolean;
-
-  /**
-   * Returns `true` when Result is `Err` and the contained error matches predicate
-   *
-   * @param cb Predicate function called when type is `Err
-   */
-  isErrAnd(cb: (v: E) => boolean): boolean;
-
-  /**
-   * If value is `Ok<T>` returns `T`. Throws error if value is `Err`
-   */
-  unwrap(): T;
-
-  /**
-   * If Result is `Err` returns E. Throws error if value is Ok;
-   */
-  unwrapErr(): E;
-
-  /**
-   * Returns the contained `Ok` value or provided default
-   *
-   * @param orValue T
-   * @returns T
-   */
-  unwrapOr(orValue: T): T;
-
-  /**
-   * Returns the contained `Ok` value or computes it from callback
-   *
-   * @param cb Callback to return a default value if Result is `Err`
-   */
-  unwrapOrElse(cb: (e: E) => T): T;
-
-  /**
-   * If Result is `Ok` calls provided `okCb` with contained value, otherwise calls
-   * provided `errCb` with contained error value.
-   *
-   * The two provided functions do not need to have the same return type
-   *
-   * @param okCb Function called when this Result is `Ok`
-   * @param errCb Function called when this Result is `Err`
-   */
-  match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
+  err(): Option<E>;
 
   /**
    * Returns the contained value `T` if value is `Ok`.
@@ -97,6 +55,55 @@ export interface IResult<T, E> {
    * @returns Contained error value
    */
   expectErr(reason: string): E;
+
+  /**
+   * Calls the provided function with contained value if Result is `Ok`.
+   *
+   * Ignores callback if Result is `Err`
+   *
+   * @param cb Function called if value is `Ok`
+   * @returns `this`
+   */
+  inspect(cb: (v: T) => void): this;
+
+  /**
+   * Calls the provided function with contained error if Result is `Err`
+   *
+   * Ignores callback if Result is `Ok`
+   *
+   * @param cb Function called if value is `Err`
+   * @returns `this`
+   */
+  inspectErr(cb: (e: E) => void): this;
+
+  /**
+   * Returns `false` if Result is `Err`
+   *
+   * @returns boolean
+   */
+  isErr(): this is Err<T, E>;
+
+  /**
+   * Returns `true` when Result is `Err` and the contained error matches predicate
+   *
+   * @param cb Predicate function called when type is `Err
+   */
+  isErrAnd(cb: (v: E) => boolean): boolean;
+
+  /**
+   * Returns `true` if Result is `Ok`
+   *
+   * @returns boolean
+   */
+  isOk(): this is Ok<T, E>;
+
+  /**
+   * Returns `true` when Result is Ok and the contained value matches predicate
+   *
+   * @param cb  Predicate function called when type is `Ok`
+   * @returns boolean
+   */
+  isOkAnd(cb: (v: T) => boolean): boolean;
 
   /**
    * Maps `Result<T, E>` to `Result<U, E>` by applying a function to a contained
@@ -139,26 +146,6 @@ export interface IResult<T, E> {
   mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U;
 
   /**
-   * Calls the provided function with contained value if Result is `Ok`.
-   *
-   * Ignores callback if Result is `Err`
-   *
-   * @param cb Function called if value is `Ok`
-   * @returns `this`
-   */
-  inspect(cb: (v: T) => void): this;
-
-  /**
-   * Calls the provided function with contained error if Result is `Err`
-   *
-   * Ignores callback if Result is `Ok`
-   *
-   * @param cb Function called if value is `Err`
-   * @returns `this`
-   */
-  inspectErr(cb: (e: E) => void): this;
-
-  /**
    * Converts from `Result<T, E>` to `Option<T>`
    *
    * @returns `Option<T>`
@@ -166,35 +153,11 @@ export interface IResult<T, E> {
   ok(): Option<T>;
 
   /**
-   * Converts from `Result<T, E>` to `Option<E>`
-   *
-   * @returns `Option<E>`
-   */
-  err(): Option<E>;
-
-  /**
-   * Returns `andValue` if the Result is `Ok`, otherwise returns `Err` value.
-   *
-   * @param andValue value to return if this Result is `Ok`
-   */
-  // and<U>(andValue: IResult<U, E>): IResult<U, E>;
-  and<U>(andValue: Result<U, E>): Result<U, E>;
-
-  /**
-   * Calls `cb` if Result is `Ok`, otherwise returns `Err<E>`.
-   *
-   * @param cb Function to call if Result is `Ok`. Should return `Result<U, E>`
-   * @returns `Result<U, E>`
-   */
-  andThen<U>(cb: (v: T) => Result<U, E>): Result<U, E>;
-
-  /**
    * Returns `orValue` if Result is `Err` otherwise returns `Ok`
    *
    * @param orValue Value to return if this Result is `Err`
    */
   or<F>(orValue: Result<T, F>): Result<T, F>;
-  // or<U, F>(orValue: Result<U, F>): Result<T, E> | Result<U, F>;
 
   /**
    * Calls `cb` if Result is `Err`, otherwise returns `Ok`
@@ -202,9 +165,43 @@ export interface IResult<T, E> {
    * @param cb Function to call if this Result is `Err`. Should return `Result<T, F>`
    * @returns `Result<T, F>`
    */
-  // orElse<F>(cb: (e: E) => IResult<T, F>): IResult<T, F>;
-  // TODO: Figure out return type inference
   orElse<F>(cb: (e: E) => Result<T, F>): Result<T, F>;
+
+  /**
+   * If value is `Ok<T>` returns `T`. Throws error if value is `Err`
+   */
+  unwrap(): T;
+
+  /**
+   * If Result is `Err` returns E. Throws error if value is Ok;
+   */
+  unwrapErr(): E;
+
+  /**
+   * Returns the contained `Ok` value or provided default
+   *
+   * @param orValue T
+   * @returns T
+   */
+  unwrapOr(orValue: T): T;
+
+  /**
+   * Returns the contained `Ok` value or computes it from callback
+   *
+   * @param cb Callback to return a default value if Result is `Err`
+   */
+  unwrapOrElse(cb: (e: E) => T): T;
+
+  /**
+   * If Result is `Ok` calls provided `okCb` with contained value, otherwise calls
+   * provided `errCb` with contained error value.
+   *
+   * The two provided functions do not need to have the same return type
+   *
+   * @param okCb Function called when this Result is `Ok`
+   * @param errCb Function called when this Result is `Err`
+   */
+  match<U>(okCb: (value: T) => U, errCb: (e: E) => U): U;
 
   // debug(msg?: string): this;
   // info(msg?: string): this;

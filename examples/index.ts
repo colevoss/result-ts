@@ -1,5 +1,6 @@
 // import './err';
 // import { pino } from 'pino';
+import { equal } from 'assert';
 import { Ok, Err, None, Result, Option } from '../src';
 
 // const logger = pino({
@@ -61,10 +62,12 @@ const myFunc = (a: string) => {
   throw 'balls';
 };
 
-async function main() {
-  const res = Result.call(myFunc, '1');
+function main() {
+  const t = test();
 
-  console.log(res);
+  const x = new Ok('ok val');
+
+  x.unwrapErr(); // Throws
 }
 
 main();

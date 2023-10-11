@@ -71,7 +71,7 @@ const errResult = new Err('error value');
 ### and
 
 ```ts
-and<U>(andValue: Result<U, E>): Result<U, E>
+and<U>(andValue: Result<U, E>): Result<U, E>;
 ```
 
 Returns `andValue` if the Result is `Ok`, otherwise returns `Err` value.
@@ -137,7 +137,7 @@ assert.equal(y.unwrapErr(), 'early error');
 ### err
 
 ```ts
-err(): Option.Option<E>
+err(): Option<E>
 ```
 
 Converts from `Result<T, E>` to `Option<E>`
@@ -184,10 +184,7 @@ const xVal = x.expect('should be ok value');
 
 // Throws:
 // Error: should be ok value
-//   [cause]: Err [ResultError]: error value
-//     type: 'ResultError',
-//     error: 'error value'
-//   }
+//   [cause]: 'error value'
 // }
 ```
 
@@ -365,7 +362,7 @@ assert.ok(!y);
 ### map
 
 ```ts
-map<U>(cb: (value: T) => U): Result<U, E>
+map<U>(cb: (value: T) => U): Result<U, E>;
 ```
 
 Maps `Result<T, E>` to `Result<U, E>` by applying a function to a contained `Ok`
@@ -381,10 +378,30 @@ const y = x.map((xVal) => {
 assert.equal(y.unwrap(), 2);
 ```
 
+### mapErr
+
+```ts
+mapErr<F>(cb: (err: E) => F): Result<T, F>;
+```
+
+Maps a `Result<T, E>` to `Result<T, F>` by applying a funciton to a contained
+`Err` value and ignores if `Ok`
+
+```ts
+// Ok
+const x = new Ok('ok')
+assert(x.mapErr(e => e.length).unwrap(), 'ok')
+
+
+// Err
+const x = new Err('err')
+assert(x.mapErr(e => e.length).unwrapErr(), 3)
+```
+
 ### mapOr
 
 ```ts
-mapOr<U>(cb: (v: T) => U, orValue: U): U
+mapOr<U>(cb: (v: T) => U, orValue: U): U;
 ```
 
 Returns the provided default if Result is `Err` otherwise applies a function
@@ -411,7 +428,7 @@ assert.equal(y, 10);
 ### mapOrElse
 
 ```ts
-mapOrElse<U>(okCb: (v: T) => U, errCb: (e: Err<E>) => U): U
+mapOrElse<U>(errCb: (e: E) => U, okCb: (v: T) => U): U;
 ```
 
 Maps a `Result<T, E>` to `U` by applying fallback function `errCb` to a contained
@@ -508,15 +525,15 @@ Calls `cb` if Result is `Err`, otherwise returns `Ok`
 **Examples**
 
 ```ts
-const o = new Ok('o')
-const e = new Err('e')
-const createOk = () => new Ok('ok');
-const createErr = () => new Err('err');
+const o = new Ok<number, number>(2);
+const e = new Err<number, number>(3);
+const sq = (x: number) => new Ok<number, number>(x * x);
+const createErr = (x: number) => new Err<number, number>(x * 10);
 
-assert.equal(o.orElse(createOk).unwrap(), 'o')
-assert.equal(o.orElse(createErr).unwrap(), 'o')
-assert.equal(e.orElse(createOk).unwrap(), 'ok')
-assert.equal(e.orElse(createErr).unwrapErr(), 'err')
+equal(o.orElse(sq).unwrap(), 2);
+equal(o.orElse(createErr).unwrap(), 2);
+equal(e.orElse(sq).unwrap(), 9);
+equal(e.orElse(createErr).unwrapErr(), 30);
 ```
 
 ### unwrap
@@ -541,11 +558,9 @@ assert.equal(x.unwrap(), 'ok val');
 // Err
 const x = new Err('err val');
 
-x.unwrap() // Throws
-// Err [ResultError]: err val
-//   type: 'ResultError',
-//   error: 'err val'
-// }
+x.unwrap()
+// Throws
+// 'err val'
 ```
 
 ### unwrapErr
@@ -570,11 +585,9 @@ assert.equal(x.unwrapErr(), 'err val');
 
 // Ok
 const x = new Ok('ok val')
-x.unwrapErr(); // Throws
-// Err [ResultError]: ok val
-//   type: 'ResultError',
-//   error: 'ok val'
-// }
+x.unwrapErr();
+// Throws
+// 'ok val'
 ```
 
 ### unwrapOr
